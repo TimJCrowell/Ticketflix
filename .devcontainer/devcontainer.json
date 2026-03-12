@@ -1,0 +1,17 @@
+{
+  "name": "Movie Booking Env",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [8080, 5432, 8025],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-boot",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}
+

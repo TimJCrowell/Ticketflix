@@ -1,0 +1,13 @@
+{
+  "name": "movie-booking-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.0",
+    "typescript": "^5.3.3"
+  }
+}
+

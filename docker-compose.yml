@@ -1,0 +1,36 @@
+services:
+  app:
+    build: 
+      context: .devcontainer
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace:cached
+      - ./.m2-cache:/home/ubuntu/.m2
+    command: sleep infinity
+    depends_on:
+      - db
+      - mailhog
+    ports:
+      - "8080:8080"
+
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: springuser
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: movie_booking_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025" 
+      - "8025:8025" 
+
+volumes:
+  postgres-data:
+
