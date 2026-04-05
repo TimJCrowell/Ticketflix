@@ -8,6 +8,7 @@ public class Customer
     private long id;
     private String name;
     private LocalDate dob; //date of birth
+    private String email;
 
     public Customer()
     {
@@ -47,5 +48,15 @@ public class Customer
     public void setDob(LocalDate dob)
     {
         this.dob = dob;
+    }
+
+    public String getEmail()
+    {
+        return email;
+    }
+
+    public void setEmail(String email)
+    {
+        this.email = email;
     }
 }//end customer class
