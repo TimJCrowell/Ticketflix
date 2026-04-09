@@ -2,7 +2,6 @@ package com.moviebooking.service;
 
 import com.moviebooking.dto.RegisterRequest;
 import com.moviebooking.exception.BadRequestException;
-import com.moviebooking.util.TokenEncoder;
 import java.util.List;
 import com.moviebooking.entity.Customer;
 import com.moviebooking.entity.Login;
@@ -52,11 +51,12 @@ public class AuthService {
         return loginRepository.save(new Login(token, user, expiresAt));
     }
 
-    public User validateToken(String base64Token) {
+    // Currently unused. Will be used to validate tokens stored on the client
+    public User validateToken(String strToken) {
         long tokenId;
         try {
-            tokenId = TokenEncoder.decode(base64Token);
-        } catch (IllegalArgumentException e) {
+            tokenId = Long.parseUnsignedLong(strToken);
+        } catch (NumberFormatException e) {
             throw new RuntimeException("Invalid token");
         }
 

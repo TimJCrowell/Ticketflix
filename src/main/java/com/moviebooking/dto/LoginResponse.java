@@ -1,6 +1,5 @@
 package com.moviebooking.dto;
 
-import com.moviebooking.util.TokenEncoder;
 import java.time.LocalDateTime;
 
 public class LoginResponse {
@@ -8,7 +7,7 @@ public class LoginResponse {
     private LocalDateTime expiresAt;
 
     public LoginResponse(Long token, LocalDateTime expiresAt) {
-        this.token = TokenEncoder.encode(token);
+        this.token = Long.toUnsignedString(token);
         this.expiresAt = expiresAt;
     }
 
