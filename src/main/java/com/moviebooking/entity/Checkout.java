@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table=(name="CHECKOUTS")
+@Table(name="CHECKOUTS")
 public class Checkout
 {
     @Id
@@ -19,7 +19,7 @@ public class Checkout
     private User user;
 
     /*---------------------------------------------------------------------------------------------------------------------------------------------------------
-    Temp until we have showtime entity
+    Temp until we have showtime class
     --------------------------------------------------------------------------------------------------------------------*/
     @Column(name="ShowtimeId", nullable = false)
     private long showtimeId;
