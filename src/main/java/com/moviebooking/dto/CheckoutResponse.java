@@ -14,7 +14,7 @@ public class CheckoutResponse
     private LocalDateTime createdAt;
     private String status;
 
-    public checkoutresponse(Long checkoutId, Long userId, Long showtimeId, List<String> seatLabels, String status, LocalDateTime createdAt)
+    public CheckoutResponse(Long checkoutId, Long userId, Long showtimeId, List<String> seatLabels, String status, LocalDateTime createdAt)
     {
         this.checkoutId = checkoutId;
         this.userId = userId;
@@ -25,17 +25,17 @@ public class CheckoutResponse
         this.createdAt = createdAt;
     }//end of checkourresponse()
 
-    public long getCheckoutId() {return checkoutId}
+    public long getCheckoutId() {return checkoutId;}
 
-    public long getUserId() {return userId}
+    public long getUserId() {return userId;}
 
-    public long getShowtimeId() {return showtimeId}
+    public long getShowtimeId() {return showtimeId;}
 
-    public List<String> getSeatLabels() {return seatLabels}
+    public List<String> getSeatLabels() {return seatLabels;}
 
-    public String getStatus() {return status}
+    public String getStatus() {return status;}
 
-    public BigDecimal getTotal() {return total}
+    public BigDecimal getTotal() {return total;}
 
-    public LocalDateTime getCreatedAt() {return createdAt}
+    public LocalDateTime getCreatedAt() {return createdAt;}
 }//end of checkoutrepsonse class

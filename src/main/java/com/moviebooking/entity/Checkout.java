@@ -27,7 +27,7 @@ public class Checkout
     @ElementCollection
     @CollectionTable(
             name = "CHECKOUT_SEATS",
-            joinColumns = @JoinColumns(name="CheckoutId")
+            joinColumns = @JoinColumn(name="CheckoutId")
     )
 
     @Column(name="SeatLabel")
@@ -55,24 +55,24 @@ public class Checkout
         this.createdAt = LocalDateTime.now();
     }
 
-    public long getCheckoutId() {return checkoutId}
+    public long getCheckoutId() {return checkoutId;}
     public void setCheckoutId(Long checkoutId) {this.checkoutId;}
 
     public BigDecimal getTotal() {return total;}
     public void setTotal(BigDecimal Total) {this.total = total;}
 
-    public List<String> getSeatLables() {return seatLables}
+    public List<String> getSeatLables() {return seatLables;}
     public void setSeatLables(List<String> SeatLabels) {this.seatLables = seatLables;}
 
-    public Long getShowtimeId() {return showtimeId}
+    public Long getShowtimeId() {return showtimeId;}
     public void setShowtimeId(Long showtimeId) {this.showtimeId = showtimeId;}
 
-    public String getStatus() {return status}
+    public String getStatus() {return status;}
     public void setStatus(String status) {this.status = status;}
 
-    public User getUser() {return user}
+    public User getUser() {return user;}
     public void setUser(User user) {this.user = user}
 
-    public LocalDateTime getCreatedAt() {return createdAt}
+    public LocalDateTime getCreatedAt() {return createdAt;}
     public void setCreatedAt(LocalDateTime createdAt) {this.createdAt = createdAt;}
 }//Checkout class
