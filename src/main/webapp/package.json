@@ -2,12 +2,17 @@
   "name": "movie-booking-frontend",
   "version": "1.0.0",
   "scripts": {
-    "build": "tsc",
-    "test:e2e": "playwright test"
+    "build": "esbuild ts/hello.tsx --bundle --outfile=../resources/static/js/hello.js"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.41.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "esbuild": "^0.20.2",
     "typescript": "^5.3.3"
   }
 }
-

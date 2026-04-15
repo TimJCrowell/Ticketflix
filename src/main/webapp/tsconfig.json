@@ -6,8 +6,11 @@
     "outDir": "../resources/static/js",
     "rootDir": "./ts",
     "removeComments": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false
   },
   "include": ["ts/**/*"]
 }
-
