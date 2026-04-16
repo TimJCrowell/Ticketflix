@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 public class CheckoutController
 {
     @Autowired
-    private CHeckoutService checkoutService;
+    private CheckoutService checkoutService;
 
     @PostMapping
     public ResponseEntity<CheckoutResponse> checkout(@RequestBody CheckoutRequest request)
     {
-        CheckoutResponse response = checkout.createCheckout(request);
-        return responseEntity.status(HttpStatus.CREATED).body(response);
+        CheckoutResponse response = checkoutService.createCheckout(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }//end of checkoutcontroller class

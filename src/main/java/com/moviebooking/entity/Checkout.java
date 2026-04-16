@@ -14,9 +14,10 @@ public class Checkout
     @Column(name="CheckoutId")
     private long checkoutId;
 
-    @ManyToOne(fetch=FetchType.LAZY, optional=false)
-    @JoinColumn(name="UserId", nullable = false)
-    private User user;
+    //@ManyToOne(fetch=FetchType.LAZY, optional=false)
+    //@JoinColumn(name="UserId", nullable = false)
+    //temp commented out due to not having user.java yet.
+    //private User user;
 
     /*---------------------------------------------------------------------------------------------------------------------------------------------------------
     Temp until we have showtime class
@@ -31,9 +32,9 @@ public class Checkout
     )
 
     @Column(name="SeatLabel")
-    private List<String> seatLables = new ArrayList<>();
+    private List<String> seatLabels = new ArrayList<>();
 
-    @Column(name="Total", nullable = false, percision = 10, scale = 2)
+    @Column(name="Total", nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
 
     @Column(name="Status", nullable = false, length = 32)
@@ -44,34 +45,34 @@ public class Checkout
 
     public Checkout() {}
 
-    public Checkout(Long checkoutId, User user, Long showtimeId, List<String> seatLabels, BigDecimal total, String status)
+    public Checkout(Long checkoutId, Long showtimeId, List<String> seatLabels, BigDecimal total, String status)
     {
         this.checkoutId = checkoutId;
-        this.user = user;
+        //this.user = user;
         this.showtimeId = showtimeId;
-        this.seatLables = seatLabels;
+        this.seatLabels = seatLabels;
         this.total = total;
         this.status = status;
         this.createdAt = LocalDateTime.now();
     }
 
     public long getCheckoutId() {return checkoutId;}
-    public void setCheckoutId(Long checkoutId) {this.checkoutId;}
+    public void setCheckoutId(long checkoutId) {this.checkoutId = checkoutId;}
 
     public BigDecimal getTotal() {return total;}
-    public void setTotal(BigDecimal Total) {this.total = total;}
+    public void setTotal(BigDecimal total) {this.total = total;}
 
-    public List<String> getSeatLables() {return seatLables;}
-    public void setSeatLables(List<String> SeatLabels) {this.seatLables = seatLables;}
+    public List<String> getSeatLabels() {return seatLabels;}
+    public void setSeatLabels(List<String> seatLabels) {this.seatLabels = seatLabels;}
 
-    public Long getShowtimeId() {return showtimeId;}
-    public void setShowtimeId(Long showtimeId) {this.showtimeId = showtimeId;}
+    public long getShowtimeId() {return showtimeId;}
+    public void setShowtimeId(long showtimeId) {this.showtimeId = showtimeId;}
 
     public String getStatus() {return status;}
     public void setStatus(String status) {this.status = status;}
 
-    public User getUser() {return user;}
-    public void setUser(User user) {this.user = user}
+    //public User getUser() {return user;}
+    //public void setUser(User user) {this.user = user;}
 
     public LocalDateTime getCreatedAt() {return createdAt;}
     public void setCreatedAt(LocalDateTime createdAt) {this.createdAt = createdAt;}

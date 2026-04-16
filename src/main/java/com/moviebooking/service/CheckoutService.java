@@ -4,10 +4,10 @@ import com.moviebooking.entity.Checkout;
 import com.moviebooking.dto.CheckoutRequest;
 import com.moviebooking.dto.CheckoutResponse;
 import com.moviebooking.repository.CheckoutRepository;
-import org.springframwork.beans.factory.annotation.Autowired;
-import org.springbootframework.stereotype.Service;
-import org.springbootframework.web.server.ResponseStatusException;
-import org.springbootframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -44,7 +44,7 @@ public class CheckoutService
             total = request.getClientTotal();
         }else
         {
-            total = Bigdecimal.ZERO;
+            total = BigDecimal.ZERO;
         }//end if else
 
         if(total.compareTo(BigDecimal.ZERO) <= 0)
@@ -57,7 +57,7 @@ public class CheckoutService
 
         Checkout checkout = new Checkout();
         checkout.setCheckoutId(checkoutId);
-        checkout.setShottimeId(request.getShowtimeId());
+        checkout.setShowtimeId(request.getShowtimeId());
         checkout.setSeatLabels(seats);
         checkout.setTotal(total);
         checkout.setStatus(STATUS_PENDING);
@@ -65,13 +65,13 @@ public class CheckoutService
         Checkout saved = checkoutRepository.save(checkout);
 
         //the request.userId() is temporary until checkout and Userid is wired.
-        return new CheckoutRepository(
-                saved.getCheckoutid(),
+        return new CheckoutResponse(
+                saved.getCheckoutId(),
                 request.getUserId(),
                 saved.getShowtimeId(),
                 saved.getSeatLabels(),
-                saved.getStatus(),
                 saved.getTotal(),
+                saved.getStatus(),
                 saved.getCreatedAt()
         );
     }

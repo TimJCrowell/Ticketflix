@@ -14,7 +14,7 @@ public class CheckoutResponse
     private LocalDateTime createdAt;
     private String status;
 
-    public CheckoutResponse(Long checkoutId, Long userId, Long showtimeId, List<String> seatLabels, String status, LocalDateTime createdAt)
+    public CheckoutResponse(long checkoutId, long userId, long showtimeId, List<String> seatLabels, BigDecimal total, String status, LocalDateTime createdAt)
     {
         this.checkoutId = checkoutId;
         this.userId = userId;

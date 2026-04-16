@@ -16,10 +16,10 @@ public class CheckoutRequest
     private BigDecimal clientTotal;
 
     public long getUserId() {return userId;}
-    public void setUserId(Long userId) {this.userId = userId;}
+    public void setUserId(long userId) {this.userId = userId;}
 
     public long getShowtimeId() {return showtimeId;}
-    public void setShowtimeId(Long showtimeId) {this.showtimeId = showtimeId;}
+    public void setShowtimeId(long showtimeId) {this.showtimeId = showtimeId;}
 
     public List<String> getSeatLabels() {return seatLabels;}
     public void setSeatLabels(List<String> seatLabels) {this.seatLabels = seatLabels;}

@@ -1,4 +1,4 @@
-package com.moviebokking.repository;
+package com.moviebooking.repository;
 import com.moviebooking.entity.Checkout;
 import org.springframework.data.jpa.repository.JpaRepository;
 
