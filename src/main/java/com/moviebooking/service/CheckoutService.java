@@ -52,6 +52,27 @@ public class CheckoutService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Total must be greater than 0");
         }//end if
 
+        //temp until snowflake is fully implemented and merged with main branch
+        long checkoutId = System.currentTimeMillis();
 
+        Checkout checkout = new Checkout();
+        checkout.setCheckoutId(checkoutId);
+        checkout.setShottimeId(request.getShowtimeId());
+        checkout.setSeatLabels(seats);
+        checkout.setTotal(total);
+        checkout.setStatus(STATUS_PENDING);
+
+        Checkout saved = checkoutRepository.save(checkout);
+
+        //the request.userId() is temporary until checkout and Userid is wired.
+        return new CheckoutRepository(
+                saved.getCheckoutid(),
+                request.getUserId(),
+                saved.getShowtimeId(),
+                saved.getSeatLabels(),
+                saved.getStatus(),
+                saved.getTotal(),
+                saved.getCreatedAt()
+        );
     }
 }
