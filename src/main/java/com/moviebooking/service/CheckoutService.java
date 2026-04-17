@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Service layer for the creation and validation of checkout. .
+ * Service layer for the creation and validation of checkout.
  * temporary implementation for checkout.
  * it records without full user/token wiring.
  */

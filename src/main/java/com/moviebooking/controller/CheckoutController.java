@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/checkout")
 public class CheckoutController
 {
-    /** Service dependency which handles checkout buisness logic.  */
+    /** Service dependency which handles checkout business logic.  */
     @Autowired
     private CheckoutService checkoutService;
 
     /**
      * Creates checkout with client requested data.
-     * @param request icoming checkout payload.
-     * @return HTTP 202 response with created checkout.
+     * @param request incoming checkout payload.
+     * @return HTTP 201 response with created checkout.
      */
     @PostMapping
     public ResponseEntity<CheckoutResponse> checkout(@RequestBody CheckoutRequest request)
