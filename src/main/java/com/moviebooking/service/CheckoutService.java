@@ -14,14 +14,14 @@ import java.util.List;
 
 /**
  * Service layer for the creation and validation of checkout.
- * temporary implementation for checkout.
- * it records without full user/token wiring.
+ * Temporary implementation for checkout.
+ * It records without full user/token wiring.
  */
 
 @Service
 public class CheckoutService
 {
-    /** Default status (pending) is assigned to newly created checkout*/
+    /** Default status (pending) is assigned to newly created checkout. */
     private static final String STATUS_PENDING = "PENDING";
 
     /** Repository used to persist and query checkout entities.*/

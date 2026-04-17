@@ -8,8 +8,8 @@ import java.util.List;
 
 /**
  * This is a JPA entity representing checkout transaction.
- * Temporary implementation that stores checkout data with a user relationship
- * until the User/auth model is fully completed.
+ * Temporary implementation that stores checkout data.
+ * User relationship and wiring will be implemented in the future until the User/auth model is fully completed.
  */
 @Entity
 @Table(name="CHECKOUTS")
@@ -25,11 +25,11 @@ public class Checkout
     //temp commented out due to not having user.java yet.
     //private User user;
 
-    /** temporary identifier untkl a showtime entity is made.*/
+    /** temporary identifier until a showtime entity is made.*/
     @Column(name="ShowtimeId", nullable = false)
     private long showtimeId;
 
-    /** A list of seat labels associated with the checkout transaciton.*/
+    /** A list of seat labels associated with the checkout transaction.*/
     @ElementCollection
     @CollectionTable(
             name = "CHECKOUT_SEATS",

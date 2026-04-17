@@ -11,14 +11,14 @@ public class CheckoutRequest
     /** Identifier for user submitting a checkout (temporary flat id approach). */
     private long userId;
 
-    /** Identifier of the showtime being purchased*/
+    /** Identifier of the showtime being purchased. */
     private long showtimeId;
 
 
     /** Seat labels selected by the user. */
     private List<String> seatLabels;
 
-    /** Client computed total for submission for temporary validaiton. */
+    /** Client computed total for submission for temporary validation. */
     private BigDecimal clientTotal;
 
     /** @return User Id. */
@@ -42,6 +42,6 @@ public class CheckoutRequest
     /** @return  Total provided by client*/
     public BigDecimal getClientTotal() {return clientTotal;}
 
-   /** @param clientTotal Total to be set. */
-   public void setClientTotal(BigDecimal clientTotal) {this.clientTotal = clientTotal;}
+    /** @param clientTotal Total to be set*/
+    public void setClientTotal(BigDecimal clientTotal) {this.clientTotal = clientTotal;}
 }//end of CheckoutRequest class
