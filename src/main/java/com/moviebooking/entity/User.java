@@ -3,6 +3,13 @@ package com.moviebooking.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
+/**
+ * Base JPA entity representing an application user.
+ *
+ * <p>Stored in the {@code users} table using a single-table inheritance strategy.
+ * The {@code role} discriminator column distinguishes between subclasses
+ * ({@link Customer}, {@link Manager}).</p>
+ */
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -30,10 +37,20 @@ public class User {
     @Column(name = "role", insertable = false, updatable = false)
     protected String role;
 
-    // Default constructor (Required by JPA)
+    /** Required by JPA; not intended for direct use. */
     public User() {}
 
-    // Constructor for logic use
+    /**
+     * Creates a new {@code User} with core identity fields.
+     *
+     * <p>The password supplied here should be the raw value; callers are
+     * responsible for encoding it before persisting.</p>
+     *
+     * @param firstName user's first name
+     * @param lastName  user's last name
+     * @param email     user's email address (used as login identifier)
+     * @param password  raw (un-encoded) password
+     */
     public User(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -43,6 +60,7 @@ public class User {
 
     // --- GETTERS AND SETTERS ---
 
+    /** @return the Snowflake-generated user ID */
     public Long getUserID() { return userID; }
     public void setUserID(Long userID) { this.userID = userID; }
 

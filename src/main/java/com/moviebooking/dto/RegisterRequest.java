@@ -2,6 +2,12 @@ package com.moviebooking.dto;
 
 import java.time.LocalDate;
 
+/**
+ * Request body for new account registration.
+ *
+ * <p>Sent to {@code POST /api/auth/register}. The {@code role} field must be
+ * either {@code "CUSTOMER"} or {@code "MANAGER"}.</p>
+ */
 public class RegisterRequest {
     private String firstName;
     private String lastName;

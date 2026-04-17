@@ -1,5 +1,10 @@
 package com.moviebooking.dto;
 
+/**
+ * Request body for the password-verification step of the login flow.
+ *
+ * <p>Sent to {@code POST /api/auth/login/password}.</p>
+ */
 public class LoginRequest {
     private String email;
     private String role;
