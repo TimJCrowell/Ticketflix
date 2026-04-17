@@ -12,14 +12,28 @@ import org.springframework.http.HttpStatus;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Service layer for the creation and validation of checkout. .
+ * temporary implementation for checkout.
+ * it records without full user/token wiring.
+ */
+
 @Service
 public class CheckoutService
 {
+    /** Default status (pending) is assigned to newly created checkout*/
     private static final String STATUS_PENDING = "PENDING";
 
+    /** Repository used to persist and query checkout entities.*/
     @Autowired
     private CheckoutRepository checkoutRepository;
 
+    /**
+     * Creates a checkout after validating request.
+     * @param request incoming payload from the client.
+     * @return persisted checkout response object.
+     * @throws ResponseStatusException when the request is invalid.
+     */
     public CheckoutResponse createCheckout(CheckoutRequest request)
     {
         if(request == null)
