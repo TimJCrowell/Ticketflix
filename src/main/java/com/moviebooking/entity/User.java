@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "roles", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
 public class User {
 
     @Id
@@ -34,7 +34,7 @@ public class User {
     @Column(name = "date_of_birth")
     protected LocalDate dateOfBirth;
 
-    @Column(name = "roles", insertable = false, updatable = false)
+    @Column(name = "role", insertable = false, updatable = false)
     protected String role;
 
     /** Required by JPA; not intended for direct use. */
