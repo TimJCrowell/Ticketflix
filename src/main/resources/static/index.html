@@ -2,11 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TicketFlix Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Ticketflix</title>
 </head>
 <body>
-    <div id="app">Loading...</div>
-    <script src="/js/hello.js"></script>
+
+<nav>
+    <button id="nav-register">Register</button>
+    <button id="nav-login">Login</button>
+</nav>
+
+<p id="status"></p>
+
+<!-- Register -->
+<section id="section-register">
+    <h2>Create Account</h2>
+    <form id="form-register">
+        <div><label>First name<br><input name="firstName" type="text" required></label></div>
+        <div><label>Last name<br><input name="lastName" type="text" required></label></div>
+        <div><label>Email<br><input name="email" type="email" required></label></div>
+        <div><label>Password<br><input name="password" type="password" required></label></div>
+        <div><label>Date of birth<br><input name="dateOfBirth" type="date" required></label></div>
+        <div>
+            <label>[DEV] Role<br>
+                <select name="role" id="register-role">
+                    <option value="CUSTOMER">CUSTOMER</option>
+                    <option value="MANAGER">MANAGER</option>
+                </select>
+            </label>
+        </div>
+
+        <button type="submit">Create account</button>
+    </form>
+</section>
+
+<!-- Login step 1: email -->
+<section id="section-login-email">
+    <h2>Login — Step 1: Email</h2>
+    <form id="form-login-email">
+        <div><label>Email<br><input name="email" type="email" required></label></div>
+        <button type="submit">Continue</button>
+    </form>
+</section>
+
+<!-- Login step 2: role (only shown when multiple roles exist for this email) -->
+<section id="section-login-role">
+    <h2>Login — Step 2: Select Role</h2>
+    <form id="form-login-role">
+        <div id="role-options"></div>
+        <button type="submit">Continue</button>
+    </form>
+</section>
+
+<!-- Login step 3: password -->
+<section id="section-login-password">
+    <h2>Login — Step 3: Password</h2>
+    <form id="form-login-password">
+        <div><label>Password<br><input name="password" type="password" required></label></div>
+        <button type="submit">Login</button>
+    </form>
+</section>
+
+<!-- Success -->
+<section id="section-success">
+    <h2>Logged in</h2>
+    <p>Token: <code id="result-token"></code></p>
+    <p>Expires: <span id="result-expires"></span></p>
+</section>
+
+<script src="/js/auth.js"></script>
 </body>
 </html>
