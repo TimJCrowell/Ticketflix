@@ -1,0 +1,250 @@
+/* ============================================================
+   TICKETFLIX — MOVIE DETAIL PAGE  (movie.html)
+   ============================================================ */
+
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.detail-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 36px 32px 60px;
+}
+
+@media (max-width: 800px) {
+  .detail-main { grid-template-columns: 1fr; padding: 24px 16px 40px; }
+}
+
+/* ── Left column ── */
+.detail-left {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.detail-section__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* Theater tabs */
+.theater-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.theater-tab {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.theater-tab:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.theater-tab--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Date pills */
+.date-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.78rem;
+  transition: all var(--transition);
+  min-width: 52px;
+}
+
+.date-pill:hover { border-color: var(--accent); color: var(--text); }
+
+.date-pill--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.date-pill__day { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; }
+.date-pill__num { font-size: 1rem;  font-weight: 700; line-height: 1.2; }
+.date-pill__mon { font-size: 0.68rem; }
+
+/* Time pills */
+.time-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.time-pill {
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.time-pill:hover { border-color: var(--accent); color: var(--text); }
+
+.time-pill--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.detail-empty {
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}
+
+/* ── Right column ── */
+.detail-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Movie poster card */
+.detail-poster {
+  border-radius: var(--radius-lg);
+  padding: 24px 20px 20px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+}
+
+.detail-poster::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.detail-poster__text {
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+  position: relative;
+  z-index: 1;
+}
+
+.detail-poster__meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.detail-poster__meta span {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.75);
+  background: rgba(0,0,0,0.45);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(4px);
+}
+
+/* Booking summary card */
+.booking-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.booking-card__empty {
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}
+
+.booking-card__theater {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.booking-card__date,
+.booking-card__time {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.booking-card__address {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.booking-card__price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.booking-card__price-label {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.booking-card__price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}

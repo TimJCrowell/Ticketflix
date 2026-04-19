@@ -1,0 +1,149 @@
+/* ============================================================
+   TICKETFLIX — HOME PAGE  (home.html)
+   ============================================================ */
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.home-content {
+  flex: 1;
+  padding: 40px 40px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.home-title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 36px;
+  color: var(--text);
+}
+
+/* ── Movie Grid ── */
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .movie-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 620px) {
+  .movie-grid { grid-template-columns: repeat(2, 1fr); }
+  .home-content { padding: 24px 16px 48px; }
+  .home-title { font-size: 1.5rem; }
+}
+
+/* ── Movie Card ── */
+.movie-card {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+
+.movie-card:hover,
+.movie-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(124,58,237,0.25);
+}
+
+.movie-card__poster {
+  position: relative;
+  width: 100%;
+  padding-top: 148%; /* ~2:3 poster ratio */
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* Real poster image — fills the card, gradient shows if it fails */
+.movie-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: var(--radius-md);
+  z-index: 1;
+}
+
+.movie-card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.65);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(4px);
+  z-index: 3;
+}
+
+.movie-card__poster-text {
+  position: absolute;
+  bottom: 24px;
+  left: 12px;
+  right: 12px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  z-index: 3;
+  /* hide text overlay when a real image is loaded */
+  mix-blend-mode: normal;
+}
+
+.movie-card__hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(124,58,237,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition);
+  z-index: 4;
+}
+
+.movie-card:hover .movie-card__hover-overlay,
+.movie-card:focus-visible .movie-card__hover-overlay {
+  opacity: 1;
+}
+
+.movie-card__cta {
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 9px 22px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.3px;
+}
+
+.movie-card__title {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+  text-align: center;
+}
+
+.movie-card__genre {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  text-align: center;
+}
