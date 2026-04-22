@@ -1,9 +1,12 @@
 package com.moviebooking.service;
 
 import com.moviebooking.entity.Checkout;
+import com.moviebooking.entity.User;
 import com.moviebooking.dto.CheckoutRequest;
 import com.moviebooking.dto.CheckoutResponse;
 import com.moviebooking.repository.CheckoutRepository;
+import com.moviebooking.repository.UserRepository;
+import com.moviebooking.util.SnowflakeIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,6 +32,12 @@ public class CheckoutService
     @Autowired
     private CheckoutRepository checkoutRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private SnowflakeIdGenerator idGenerator;
+
     /**
      * Creates a checkout after validating request.
      * @param request incoming payload from the client.
@@ -40,6 +49,11 @@ public class CheckoutService
         if(request == null)
         {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required");
+        }//end if
+
+        if(request.getUserId() <= 0)
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id required.");
         }//end if
 
         if(request.getShowtimeId() <= 0)
@@ -67,11 +81,12 @@ public class CheckoutService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Total must be greater than 0");
         }//end if
 
-        //temp until snowflake is fully implemented and merged with main branch
-        long checkoutId = System.currentTimeMillis();
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         Checkout checkout = new Checkout();
-        checkout.setCheckoutId(checkoutId);
+        checkout.setCheckoutId(idGenerator.nextId());
+        checkout.setUser(user);
         checkout.setShowtimeId(request.getShowtimeId());
         checkout.setSeatLabels(seats);
         checkout.setTotal(total);
@@ -83,7 +98,7 @@ public class CheckoutService
         //the request.userId() is temporary until checkout and Userid is wired.
         return new CheckoutResponse(
                 saved.getCheckoutId(),
-                request.getUserId(),
+                saved.getUser().getUserID(),
                 saved.getShowtimeId(),
                 saved.getSeatLabels(),
                 saved.getTotal(),

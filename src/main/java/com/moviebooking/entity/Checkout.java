@@ -20,10 +20,9 @@ public class Checkout
     @Column(name="CheckoutId")
     private long checkoutId;
 
-    //@ManyToOne(fetch=FetchType.LAZY, optional=false)
-    //@JoinColumn(name="UserId", nullable = false)
-    //temp commented out due to not having user.java yet.
-    //private User user;
+    @ManyToOne(fetch=FetchType.LAZY, optional=false)
+    @JoinColumn(name="UserId", nullable = false)
+    private User user;
 
     /** temporary identifier until a showtime entity is made.*/
     @Column(name="ShowtimeId", nullable = false)
@@ -61,15 +60,15 @@ public class Checkout
      * @param total Checkout total amount
      * @param status initial checkout status
      */
-    public Checkout(Long checkoutId, Long showtimeId, List<String> seatLabels, BigDecimal total, String status)
+    public Checkout(long checkoutId, User user, long showtimeId, List<String> seatLabels, BigDecimal total, String status, LocalDateTime createdAt)
     {
         this.checkoutId = checkoutId;
-        //this.user = user;
+        this.user = user;
         this.showtimeId = showtimeId;
         this.seatLabels = seatLabels;
         this.total = total;
         this.status = status;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = createdAt;
     }
 
     /** @return checkout id.*/
@@ -102,8 +101,8 @@ public class Checkout
     /** @param status status to be set. */
     public void setStatus(String status) {this.status = status;}
 
-    //public User getUser() {return user;}
-    //public void setUser(User user) {this.user = user;}
+    public User getUser() {return user;}
+    public void setUser(User user) {this.user = user;}
 
     /** @return creation timestamp*/
     public LocalDateTime getCreatedAt() {return createdAt;}
