@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -75,6 +76,7 @@ public class CheckoutService
         checkout.setSeatLabels(seats);
         checkout.setTotal(total);
         checkout.setStatus(STATUS_PENDING);
+        checkout.setCreatedAt(LocalDateTime.now());
 
         Checkout saved = checkoutRepository.save(checkout);
 
