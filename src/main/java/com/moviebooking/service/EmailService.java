@@ -17,7 +17,7 @@ public class EmailService
 
     public void sendCheckoutConfirmation(User user, Checkout checkout)
     {
-        SimpleMailMessage msg = new SimpleEmailMessage();
+        SimpleMailMessage msg = new SimpleMailMessage();
         msg.setFrom("no-reply@ticketflix.local");
         msg.setTo(user.getEmail());
         msg.setSubject("Ticketflix Purchase Confirmation");
@@ -29,7 +29,7 @@ public class EmailService
         }//end for
 
         msg.setText(
-                "Hi " + user.getFirstName() "\n\n" +
+                "Hi " + user.getFirstName() + "\n\n" +
                 "Thank you for purchasing at Ticketflix!\n" +
                 "Checkout ID: " + checkout.getCheckoutId() + "\n" +
                 "Seats: " + seats + "\n" +

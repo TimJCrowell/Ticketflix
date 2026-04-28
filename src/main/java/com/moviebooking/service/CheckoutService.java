@@ -5,6 +5,7 @@ import com.moviebooking.entity.User;
 import com.moviebooking.dto.CheckoutRequest;
 import com.moviebooking.dto.CheckoutResponse;
 import com.moviebooking.repository.CheckoutRepository;
+import com.moviebooking.service.EmailService;
 import com.moviebooking.util.SnowflakeIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,9 @@ public class CheckoutService
     /** Repository used to persist and query checkout entities.*/
     @Autowired
     private CheckoutRepository checkoutRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private SnowflakeIdGenerator idGenerator;
@@ -83,7 +87,12 @@ public class CheckoutService
 
         Checkout saved = checkoutRepository.save(checkout);
 
-        //the request.userId() is temporary until checkout and Userid is wired.
+        try{
+            emailService.sendCheckoutConfirmation(customer, saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return new CheckoutResponse(
                 saved.getCheckoutId(),
                 customer.getUserID(),
