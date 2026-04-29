@@ -9,12 +9,21 @@ import org.springframework.stereotype.Service;
 
 import java.util.StringJoiner;
 
+/**
+ * Sends transactional email notifications for checkout events.
+ */
 @Service
 public class EmailService
 {
     @Autowired
     private JavaMailSender mailSender;
 
+    /**
+     * Sends a purchase confirmation email for a saved checkout.
+     *
+     * @param user recipient customer
+     * @param checkout persisted checkout data included in the email body
+     */
     public void sendCheckoutConfirmation(User user, Checkout checkout)
     {
         SimpleMailMessage msg = new SimpleMailMessage();

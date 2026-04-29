@@ -25,9 +25,12 @@ public class CheckoutController
     private CheckoutService checkoutService;
 
     /**
-     * Creates checkout with client requested data.
-     * @param request incoming checkout payload.
-     * @return HTTP 201 response with created checkout.
+     * Creates a checkout for the authenticated customer.
+     *
+     * @param request incoming checkout payload
+     * @param authHeader Authorization header in the format {@code Bearer <token>}
+     * @return {@code 201 Created} with checkout data, or {@code 401 Unauthorized}
+     *         when the token is missing/invalid
      */
     @PostMapping
     public ResponseEntity<CheckoutResponse> checkout(@RequestBody CheckoutRequest request, @RequestHeader(value = "Authorization", required = false) String authHeader) {

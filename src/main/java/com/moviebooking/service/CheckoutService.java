@@ -17,9 +17,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Service layer for the creation and validation of checkout.
- * Temporary implementation for checkout.
- * It records without full user/token wiring.
+ * Service layer for checkout creation and validation.
+ *
+ * <p>Builds a checkout for the authenticated customer, persists it,
+ * and triggers a confirmation email.</p>
  */
 
 @Service
@@ -39,10 +40,12 @@ public class CheckoutService
     private SnowflakeIdGenerator idGenerator;
 
     /**
-     * Creates a checkout after validating request.
-     * @param request incoming payload from the client.
-     * @return persisted checkout response object.
-     * @throws ResponseStatusException when the request is invalid.
+     * Creates a checkout after validating request data and customer context.
+     *
+     * @param request incoming checkout payload
+     * @param customer authenticated customer resolved from login token
+     * @return persisted checkout response object
+     * @throws ResponseStatusException when request data is invalid
      */
     public CheckoutResponse createCheckout(CheckoutRequest request, User customer)
     {
