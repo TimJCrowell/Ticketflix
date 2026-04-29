@@ -38,6 +38,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/js/**", "/*.html").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/checkout/**").permitAll()
                 .anyRequest().authenticated()
             );
 

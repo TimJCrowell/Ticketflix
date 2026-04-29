@@ -1,21 +1,26 @@
 package com.moviebooking.service;
 
 import com.moviebooking.entity.Checkout;
+import com.moviebooking.entity.User;
 import com.moviebooking.dto.CheckoutRequest;
 import com.moviebooking.dto.CheckoutResponse;
 import com.moviebooking.repository.CheckoutRepository;
+import com.moviebooking.service.EmailService;
+import com.moviebooking.util.SnowflakeIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Service layer for the creation and validation of checkout.
- * Temporary implementation for checkout.
- * It records without full user/token wiring.
+ * Service layer for checkout creation and validation.
+ *
+ * <p>Builds a checkout for the authenticated customer, persists it,
+ * and triggers a confirmation email.</p>
  */
 
 @Service
@@ -28,13 +33,21 @@ public class CheckoutService
     @Autowired
     private CheckoutRepository checkoutRepository;
 
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private SnowflakeIdGenerator idGenerator;
+
     /**
-     * Creates a checkout after validating request.
-     * @param request incoming payload from the client.
-     * @return persisted checkout response object.
-     * @throws ResponseStatusException when the request is invalid.
+     * Creates a checkout after validating request data and customer context.
+     *
+     * @param request incoming checkout payload
+     * @param customer authenticated customer resolved from login token
+     * @return persisted checkout response object
+     * @throws ResponseStatusException when request data is invalid
      */
-    public CheckoutResponse createCheckout(CheckoutRequest request)
+    public CheckoutResponse createCheckout(CheckoutRequest request, User customer)
     {
         if(request == null)
         {
@@ -66,22 +79,26 @@ public class CheckoutService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Total must be greater than 0");
         }//end if
 
-        //temp until snowflake is fully implemented and merged with main branch
-        long checkoutId = System.currentTimeMillis();
-
         Checkout checkout = new Checkout();
-        checkout.setCheckoutId(checkoutId);
+        checkout.setCheckoutId(idGenerator.nextId());
+        checkout.setUser(customer);
         checkout.setShowtimeId(request.getShowtimeId());
         checkout.setSeatLabels(seats);
         checkout.setTotal(total);
         checkout.setStatus(STATUS_PENDING);
+        checkout.setCreatedAt(LocalDateTime.now());
 
         Checkout saved = checkoutRepository.save(checkout);
 
-        //the request.userId() is temporary until checkout and Userid is wired.
+        try{
+            emailService.sendCheckoutConfirmation(customer, saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return new CheckoutResponse(
                 saved.getCheckoutId(),
-                request.getUserId(),
+                customer.getUserID(),
                 saved.getShowtimeId(),
                 saved.getSeatLabels(),
                 saved.getTotal(),

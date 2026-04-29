@@ -7,9 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This is a JPA entity representing checkout transaction.
- * Temporary implementation that stores checkout data.
- * User relationship and wiring will be implemented in the future until the User/auth model is fully completed.
+ * JPA entity representing a completed checkout transaction.
+ *
+ * <p>Stores the purchasing user, showtime reference, selected seats,
+ * total amount, status, and creation timestamp.</p>
  */
 @Entity
 @Table(name="CHECKOUTS")
@@ -20,12 +21,11 @@ public class Checkout
     @Column(name="CheckoutId")
     private long checkoutId;
 
-    //@ManyToOne(fetch=FetchType.LAZY, optional=false)
-    //@JoinColumn(name="UserId", nullable = false)
-    //temp commented out due to not having user.java yet.
-    //private User user;
+    @ManyToOne(fetch=FetchType.LAZY, optional=false)
+    @JoinColumn(name="UserId", nullable = false)
+    private User user;
 
-    /** temporary identifier until a showtime entity is made.*/
+    /** Identifier of the purchased showtime. */
     @Column(name="ShowtimeId", nullable = false)
     private long showtimeId;
 
@@ -54,22 +54,25 @@ public class Checkout
     public Checkout() {}
 
     /**
-     * This constructs a checkout with the required values.
-     * @param checkoutId unique checkout Id.
-     * @param showtimeId target showtime Id.
+     * Constructs a checkout with all required fields.
+     *
+     * @param checkoutId unique checkout ID
+     * @param user purchasing user
+     * @param showtimeId target showtime ID
      * @param seatLabels selected seats
-     * @param total Checkout total amount
+     * @param total checkout total amount
      * @param status initial checkout status
+     * @param createdAt checkout creation timestamp
      */
-    public Checkout(Long checkoutId, Long showtimeId, List<String> seatLabels, BigDecimal total, String status)
+    public Checkout(long checkoutId, User user, long showtimeId, List<String> seatLabels, BigDecimal total, String status, LocalDateTime createdAt)
     {
         this.checkoutId = checkoutId;
-        //this.user = user;
+        this.user = user;
         this.showtimeId = showtimeId;
         this.seatLabels = seatLabels;
         this.total = total;
         this.status = status;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = createdAt;
     }
 
     /** @return checkout id.*/
@@ -102,8 +105,8 @@ public class Checkout
     /** @param status status to be set. */
     public void setStatus(String status) {this.status = status;}
 
-    //public User getUser() {return user;}
-    //public void setUser(User user) {this.user = user;}
+    public User getUser() {return user;}
+    public void setUser(User user) {this.user = user;}
 
     /** @return creation timestamp*/
     public LocalDateTime getCreatedAt() {return createdAt;}
