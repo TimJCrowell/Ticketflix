@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class CheckoutRequest
 {
-    /** Identifier for user submitting a checkout (temporary flat id approach). */
+    /** Deprecated: customer is resolved from Authorization token, not request body. */
     private long userId;
 
     /** Identifier of the showtime being purchased. */
@@ -18,13 +18,13 @@ public class CheckoutRequest
     /** Seat labels selected by the user. */
     private List<String> seatLabels;
 
-    /** Client computed total for submission for temporary validation. */
+    /** Total submitted by the client for server-side validation. */
     private BigDecimal clientTotal;
 
-    /** @return User Id. */
+    /** @return deprecated user id field; customer is resolved from Authorization token */
     public long getUserId() {return userId;}
 
-    /** @param userId User Id to be set.*/
+    /** @param userId deprecated field; ignored when token-based checkout is used.*/
     public void setUserId(long userId) {this.userId = userId;}
 
     /** @return Showtime Id*/
