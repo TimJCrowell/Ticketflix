@@ -93,7 +93,7 @@ const EMPTY_SCREEN_FORM: Omit<TheaterScreen, 'id'> = {
   name: "", location: "", capacity: 0, status: "Open"
 };
 
-type Tab = "Movies" | "Screens" | "Orders" | "Account Settings";
+type Tab = "Movies" | "Screens" | "Orders" | "Report" | "Account Settings";
 
 export default function ManagerDashboard() {
   // Navigation and Primary Data State
@@ -268,7 +268,7 @@ export default function ManagerDashboard() {
         
         {/* Left Sidebar Navigation */}
         <aside className="w-48 border-r border-gray-300 bg-white flex flex-col pt-2 shrink-0">
-          {(["Movies", "Screens", "Orders"] as Tab[]).map((tab) => (
+          {(["Movies", "Screens", "Orders", "Report"] as Tab[]).map((tab) => (
             <button 
               key={tab} 
               onClick={() => setActiveTab(tab)} 
@@ -477,6 +477,48 @@ export default function ManagerDashboard() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* --- Report View --- */}
+          {activeTab === "Report" && (
+            <div className="max-w-6xl">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Dashboard Reports</h2>
+                <p className="text-sm text-gray-500">High-level summary of system performance and sales.</p>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white border border-gray-300 p-6 shadow-sm rounded-sm">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Total Revenue</div>
+                  <div className="text-3xl font-bold text-gray-800">$105.00</div>
+                  <div className="text-xs text-green-600 font-medium mt-2">+12% from last week</div>
+                </div>
+                
+                <div className="bg-white border border-gray-300 p-6 shadow-sm rounded-sm">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Tickets Sold</div>
+                  <div className="text-3xl font-bold text-gray-800">7</div>
+                  <div className="text-xs text-green-600 font-medium mt-2">Across 3 active orders</div>
+                </div>
+
+                <div className="bg-white border border-gray-300 p-6 shadow-sm rounded-sm">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Active Screens</div>
+                  <div className="text-3xl font-bold text-gray-800">2 / 3</div>
+                  <div className="text-xs text-yellow-600 font-medium mt-2">1 screen in maintenance</div>
+                </div>
+              </div>
+
+              {/* Placeholder for future charting component */}
+              <div className="bg-white border border-gray-300 p-8 shadow-sm rounded-sm flex items-center justify-center min-h-[300px]">
+                <div className="text-center">
+                  <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <h3 className="text-lg font-bold text-gray-700">Sales Chart Visualization</h3>
+                  <p className="text-sm text-gray-500 mt-1">Pending implementation of charting library (e.g., Chart.js or Recharts).</p>
+                </div>
               </div>
             </div>
           )}
