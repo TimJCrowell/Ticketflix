@@ -33,19 +33,22 @@ public class CheckoutController
      *         when the token is missing/invalid
      */
     @PostMapping
-    public ResponseEntity<CheckoutResponse> checkout(@RequestBody CheckoutRequest request, @RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<CheckoutResponse> checkout(
+            @RequestBody CheckoutRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
         if (authHeader == null || !authHeader.startsWith("Bearer "))
         {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }//end if
         String token = authHeader.substring(7).trim();
-        if(token.isEmpty())
+        if (token.isEmpty() || sessionKey == null || sessionKey.isBlank())
         {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }//end if
 
         try{
-            User customer = authService.validateToken(token);
+            User customer = authService.validateToken(token, sessionKey);
             CheckoutResponse response = checkoutService.createCheckout(request, customer);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch(RuntimeException e){

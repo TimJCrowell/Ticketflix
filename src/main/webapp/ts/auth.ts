@@ -2,6 +2,34 @@
 let loginEmail = '';
 let loginRole = '';
 
+// --- Session storage ---
+function saveSession(token: string, rawKey: string, expiresAt: string): void {
+    localStorage.setItem('tf_token', token);
+    localStorage.setItem('tf_rawKey', rawKey);
+    localStorage.setItem('tf_expiresAt', expiresAt);
+}
+
+function clearSession(): void {
+    localStorage.removeItem('tf_token');
+    localStorage.removeItem('tf_rawKey');
+    localStorage.removeItem('tf_expiresAt');
+}
+
+function renderStoredSession(): void {
+    const token     = localStorage.getItem('tf_token');
+    const rawKey    = localStorage.getItem('tf_rawKey');
+    const expiresAt = localStorage.getItem('tf_expiresAt');
+    const box = document.getElementById('session-box') as HTMLElement;
+    if (token && rawKey) {
+        (document.getElementById('stored-token')   as HTMLElement).textContent = token;
+        (document.getElementById('stored-rawkey')  as HTMLElement).textContent = rawKey;
+        (document.getElementById('stored-expires') as HTMLElement).textContent = expiresAt ?? '';
+        box.style.display = 'block';
+    } else {
+        box.style.display = 'none';
+    }
+}
+
 // --- Utilities ---
 function showSection(id: string): void {
     document.querySelectorAll<HTMLElement>('section').forEach(s => s.style.display = 'none');
@@ -119,12 +147,15 @@ async function handleLoginPassword(e: Event): Promise<void> {
             return;
         }
 
-        const data = await res.json() as { token: string; expiresAt: string };
+        const data = await res.json() as { token: string; rawKey: string; expiresAt: string };
+        saveSession(data.token, data.rawKey, data.expiresAt);
         (document.getElementById('result-token')   as HTMLElement).textContent = data.token;
+        (document.getElementById('result-rawkey')  as HTMLElement).textContent = data.rawKey;
         (document.getElementById('result-expires') as HTMLElement).textContent = data.expiresAt;
         clearStatus();
         form.reset();
         showSection('section-success');
+        renderStoredSession();
     } catch {
         setStatus('Could not reach the server. Please try again.', true);
     }
@@ -148,5 +179,31 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('form-login-role')!    .addEventListener('submit', handleLoginRole);
     document.getElementById('form-login-password')!.addEventListener('submit', handleLoginPassword);
 
+    document.getElementById('btn-logout')!.addEventListener('click', async () => {
+        const token  = localStorage.getItem('tf_token');
+        const rawKey = localStorage.getItem('tf_rawKey');
+        if (token && rawKey) {
+            try {
+                const res = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, rawKey })
+                });
+                if (!res.ok) {
+                    setStatus(await res.text(), true);
+                    return;
+                }
+            } catch {
+                setStatus('Could not reach the server. Please try again.', true);
+                return;
+            }
+        }
+        clearSession();
+        renderStoredSession();
+        setStatus('Logged out.');
+        showSection('section-login-email');
+    });
+
+    renderStoredSession();
     showSection('section-register');
 });

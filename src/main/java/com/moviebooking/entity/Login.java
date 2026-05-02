@@ -17,7 +17,14 @@ public class Login {
 
     @Id
     @Column(name = "LoginToken")
-    private Long loginToken; // Changed to Long for Snowflake
+    private Long loginToken;
+
+    @Column(name = "TokenHmac", nullable = false)
+    private byte[] tokenHmac;
+
+    /** Not persisted; carries the raw HMAC key back to the controller after login. */
+    @Transient
+    private byte[] rawKey;
 
     @Column(name = "LoginTimestamp", nullable = false)
     private LocalDateTime loginTimestamp;
@@ -38,11 +45,13 @@ public class Login {
      * <p>The {@code loginTimestamp} is set to the current time automatically.</p>
      *
      * @param loginToken Snowflake ID used as the session token
+     * @param tokenHmac  HMAC-SHA-512/256 of the token bytes keyed with the raw key
      * @param user       the authenticated user this session belongs to
      * @param expiresAt  date-time after which the session is considered expired
      */
-    public Login(Long loginToken, User user, LocalDateTime expiresAt) {
+    public Login(Long loginToken, byte[] tokenHmac, User user, LocalDateTime expiresAt) {
         this.loginToken = loginToken;
+        this.tokenHmac = tokenHmac;
         this.user = user;
         this.loginTimestamp = LocalDateTime.now();
         this.expiresAt = expiresAt;
@@ -51,6 +60,12 @@ public class Login {
     // --- GETTERS AND SETTERS ---
     public Long getLoginToken() { return loginToken; }
     public void setLoginToken(Long loginToken) { this.loginToken = loginToken; }
+
+    public byte[] getTokenHmac() { return tokenHmac; }
+    public void setTokenHmac(byte[] tokenHmac) { this.tokenHmac = tokenHmac; }
+
+    public byte[] getRawKey() { return rawKey; }
+    public void setRawKey(byte[] rawKey) { this.rawKey = rawKey; }
 
     public LocalDateTime getLoginTimestamp() { return loginTimestamp; }
     public void setLoginTimestamp(LocalDateTime loginTimestamp) { this.loginTimestamp = loginTimestamp; }

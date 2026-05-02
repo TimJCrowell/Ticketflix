@@ -3,6 +3,7 @@ package com.moviebooking.controller;
 import com.moviebooking.dto.EmailLookupRequest;
 import com.moviebooking.dto.LoginRequest;
 import com.moviebooking.dto.LoginResponse;
+import com.moviebooking.dto.LogoutRequest;
 import com.moviebooking.dto.RegisterRequest;
 import com.moviebooking.entity.Login;
 import com.moviebooking.entity.User;
@@ -65,7 +66,7 @@ public class AuthController {
         try {
             Login login = authService.loginAndGenerateToken(
                     request.getEmail(), request.getRole(), request.getPassword());
-            return ResponseEntity.ok(new LoginResponse(login.getLoginToken(), login.getExpiresAt()));
+            return ResponseEntity.ok(new LoginResponse(login.getLoginToken(), login.getRawKey(), login.getExpiresAt()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
@@ -88,6 +89,22 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
+    /**
+     * Invalidates a session by deleting its token from the database.
+     *
+     * @param request request body containing the session token and Base64 raw key
+     * @return {@code 200 OK} on success; {@code 400 Bad Request} if the token is
+     *         missing, expired, or the key does not match
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestBody LogoutRequest request) {
+        try {
+            authService.logout(request.getToken(), request.getRawKey());
+            return ResponseEntity.ok("Logged out successfully.");
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }
