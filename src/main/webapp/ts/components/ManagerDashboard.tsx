@@ -8,21 +8,21 @@ import { useState, useEffect, useRef } from "react";
  * * Brief description of the class/module:
  * This component serves as the primary administrative dashboard for the TicketFLIX web application. 
  * It provides a user interface for managers to view, create, edit, and delete movie records, manage viewing screens, track customer orders, view reports, and manage their account settings.
- * * Brief explanation of important functions in each class, including input values and output values:
- * - getDynamicStatus(startDateStr: string, endDateStr: string): string -> Inputs: start and end date strings. Output: "Active" or "Not Active". Compares current date to movie schedule.
+ * * * Phase 4 Refactoring Notes:
+ * - Extracted `getDynamicStatus` out of the component lifecycle.
+ * - Refactored `getDynamicStatus` to accept a `referenceDate` dependency injection to allow for deterministic Unit Testing and Independent Path Validation.
+ * * * Brief explanation of important functions in each class, including input values and output values:
+ * - getDynamicStatus(startDateStr: string, endDateStr: string, referenceDate?: Date): string -> Inputs: start/end date strings, optional reference date. Output: "Active" or "Not Active". 
  * - handleDelete(id: number): void -> Inputs: movie ID (number). Output: none. Prompts for confirmation and removes a movie from the state.
  * - openCreateModal(): void -> Inputs: none. Output: none. Clears the form state and opens the modal for a new movie entry.
  * - openEditModal(movie: Movie): void -> Inputs: Movie object. Output: none. Populates the form state with the selected movie's data.
- * - handleScreenSubmit(e: React.FormEvent): void -> Inputs: Event object. Output: none. Evaluates if a screen is being edited or created, updates the screens state, and closes the modal.
+ * - handleScreenSubmit(e: React.FormEvent): void -> Inputs: Event object. Output: none. Evaluates if a screen is being edited or created.
  * - handleSubmit(e: React.FormEvent): void -> Inputs: Event object. Output: none. Evaluates if a movie is being edited or created, updates the state, and closes the modal.
- * * Any important data structure in class/methods:
- * - Movie (Interface): Defines the exact schema for a movie object, strongly typing the data across the module.
- * - TheaterScreen (Interface): Defines the schema for screen data (capacity, location, status).
+ * * * Any important data structure in class/methods:
+ * - Movie (Interface): Defines the exact schema for a movie object.
+ * - TheaterScreen (Interface): Defines the schema for screen data.
  * - Order (Interface): Defines the schema for customer checkout transactions.
  * - Tab (Type): A union type enforcing valid string literals for the active tab state.
- * * Briefly describe any algorithm that you may have used and why did you select it:
- * - Array Filtering (Array.prototype.filter): Used in deletion handlers to remove items safely. Selected over a standard 'for' loop because it guarantees an immutable state update, which is strictly required by React to trigger UI re-renders, operating efficiently at O(N) time complexity.
- * - Date Normalization & Comparison Algorithm: Used in getDynamicStatus to normalize the current Date to midnight, and evaluate if it falls within the start/end boundaries. Selected to dynamically render movie status on the frontend without requiring hardcoded database polling.
  */
 
 // --- Data Interfaces ---
@@ -95,6 +95,27 @@ const EMPTY_SCREEN_FORM: Omit<TheaterScreen, 'id'> = {
 
 type Tab = "Movies" | "Screens" | "Orders" | "Report" | "Account Settings";
 
+// --- REFACTORED UTILITY FUNCTION FOR PHASE 4 TESTING ---
+// Extracted out of the component and added a referenceDate parameter.
+// This allows testing frameworks (like Jest) to inject mock dates to test independent paths without failing.
+export function getDynamicStatus(startDateStr: string, endDateStr: string, referenceDate: Date = new Date()): string {
+  if (!startDateStr || !endDateStr) return "Not Active";
+  
+  // Clone the reference date so we don't accidentally mutate the original object
+  const today = new Date(referenceDate);
+  today.setHours(0, 0, 0, 0); 
+  
+  const startDate = new Date(startDateStr);
+  const endDate = new Date(endDateStr);
+  
+  // Independent Path 1: Date is within range -> returns Active
+  // Independent Path 2: Date is outside range -> returns Not Active
+  if (today >= startDate && today <= endDate) {
+    return "Active";
+  }
+  return "Not Active";
+}
+
 export default function ManagerDashboard() {
   // Navigation and Primary Data State
   const [activeTab, setActiveTab] = useState<Tab>("Movies");
@@ -126,23 +147,6 @@ export default function ManagerDashboard() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // --- Utility Functions ---
-
-  function getDynamicStatus(startDateStr: string, endDateStr: string) {
-    if (!startDateStr || !endDateStr) return "Not Active";
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
-    
-    const startDate = new Date(startDateStr);
-    const endDate = new Date(endDateStr);
-    
-    if (today >= startDate && today <= endDate) {
-      return "Active";
-    }
-    return "Not Active";
-  }
 
   // --- Movie Handlers ---
 
@@ -310,7 +314,8 @@ export default function ManagerDashboard() {
                   </thead>
                   <tbody>
                     {movies.map((movie, index) => {
-                      const dynamicStatus = getDynamicStatus(movie.showingSchedule, movie.endDate);
+                      // Passing new Date() as the reference date for the real application
+                      const dynamicStatus = getDynamicStatus(movie.showingSchedule, movie.endDate, new Date());
                       const isStatusActive = dynamicStatus === "Active";
 
                       return (
