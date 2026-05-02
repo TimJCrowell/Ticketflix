@@ -47,6 +47,16 @@ export interface TheaterScreen {
   status: "Open" | "Maintenance" | "Closed";
 }
 
+export interface Order {
+  id: number;
+  customerEmail: string;
+  movieTitle: string;
+  checkoutDate: string;
+  tickets: number;
+  total: string;
+  status: "Completed" | "Pending" | "Cancelled";
+}
+
 // --- Mock Data ---
 
 const INITIAL_MOVIES: Movie[] = [
@@ -69,6 +79,12 @@ const INITIAL_SCREENS: TheaterScreen[] = [
   { id: 3, name: "Screen 3", location: "Upper Level", capacity: 80, status: "Maintenance" }
 ];
 
+const MOCK_ORDERS: Order[] = [
+  { id: 10452, customerEmail: "john.doe@example.com", movieTitle: "The Matrix", checkoutDate: "2026-04-15 14:32", tickets: 2, total: "30.00", status: "Completed" },
+  { id: 10453, customerEmail: "sarah.smith@example.com", movieTitle: "The Matrix", checkoutDate: "2026-04-16 09:15", tickets: 4, total: "60.00", status: "Pending" },
+  { id: 10454, customerEmail: "mike.jones@example.com", movieTitle: "The Matrix", checkoutDate: "2026-04-16 11:05", tickets: 1, total: "15.00", status: "Cancelled" }
+];
+
 const EMPTY_MOVIE_FORM: Omit<Movie, 'id'> = {
   title: "", description: "", durationHrs: "", durationMins: "", price: "", showingSchedule: "", endDate: "", imageUrl: ""
 };
@@ -77,7 +93,7 @@ const EMPTY_SCREEN_FORM: Omit<TheaterScreen, 'id'> = {
   name: "", location: "", capacity: 0, status: "Open"
 };
 
-type Tab = "Movies" | "Screens" | "Account Settings";
+type Tab = "Movies" | "Screens" | "Orders" | "Account Settings";
 
 export default function ManagerDashboard() {
   // Navigation and Primary Data State
@@ -252,7 +268,7 @@ export default function ManagerDashboard() {
         
         {/* Left Sidebar Navigation */}
         <aside className="w-48 border-r border-gray-300 bg-white flex flex-col pt-2 shrink-0">
-          {(["Movies", "Screens"] as Tab[]).map((tab) => (
+          {(["Movies", "Screens", "Orders"] as Tab[]).map((tab) => (
             <button 
               key={tab} 
               onClick={() => setActiveTab(tab)} 
@@ -409,6 +425,56 @@ export default function ManagerDashboard() {
                         <td colSpan={5} className="p-8 text-center text-gray-500 italic">No screens configured.</td>
                       </tr>
                     )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* --- Orders View --- */}
+          {activeTab === "Orders" && (
+            <div className="max-w-6xl">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">Recent Orders</h2>
+                <p className="text-sm text-gray-500">View customer checkouts and booking information.</p>
+              </div>
+
+              <div className="border border-gray-300 bg-white overflow-x-auto">
+                <table className="w-full min-w-[800px] text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-300">
+                      <th className="p-3 border-r border-gray-300 font-medium w-24">Order ID</th>
+                      <th className="p-3 border-r border-gray-300 font-medium">Customer Email</th>
+                      <th className="p-3 border-r border-gray-300 font-medium">Movie</th>
+                      <th className="p-3 border-r border-gray-300 font-medium text-center w-24">Tickets</th>
+                      <th className="p-3 border-r border-gray-300 font-medium">Total</th>
+                      <th className="p-3 font-medium w-32">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {MOCK_ORDERS.map((order) => (
+                      <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                        <td className="p-3 border-r border-gray-300 font-mono text-gray-600">#{order.id}</td>
+                        <td className="p-3 border-r border-gray-300 font-medium">{order.customerEmail}</td>
+                        <td className="p-3 border-r border-gray-300">
+                          <div className="font-medium text-gray-800">{order.movieTitle}</div>
+                          <div className="text-xs text-gray-500">{order.checkoutDate}</div>
+                        </td>
+                        <td className="p-3 border-r border-gray-300 text-center font-bold">{order.tickets}</td>
+                        <td className="p-3 border-r border-gray-300 font-medium">${order.total}</td>
+                        <td className="p-3">
+                          <span 
+                            className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${
+                              order.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                              order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                              'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {order.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
