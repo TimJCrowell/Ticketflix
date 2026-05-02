@@ -1,7 +1,9 @@
 package com.moviebooking.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.moviebooking.util.SeatmapConverter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 
 /**
@@ -17,6 +19,8 @@ import jakarta.persistence.*;
        uniqueConstraints = @UniqueConstraint(columnNames = {"theater_id", "number"}))
 public class Room {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     @Id
     @Column(name = "room_id")
     private Long id;
@@ -30,7 +34,11 @@ public class Room {
     private Theater theater;
 
     @Column(name = "seatmap", columnDefinition = "text", nullable = false)
-    @Convert(converter = SeatmapConverter.class)
+    @JsonIgnore
+    private String seatmapJson;
+
+    @Transient
+    @JsonProperty("seatmap")
     private Seat[][] seatmap;
 
     public Room() {}
@@ -39,7 +47,18 @@ public class Room {
         this.id = id;
         this.number = number;
         this.theater = theater;
-        this.seatmap = seatmap;
+        setSeatmap(seatmap);
+    }
+
+    @PostLoad
+    private void loadSeatmap() {
+        if (seatmapJson != null) {
+            try {
+                this.seatmap = MAPPER.readValue(seatmapJson, Seat[][].class);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize seatmap", e);
+            }
+        }
     }
 
     public Long getId() { return id; }
@@ -51,6 +70,31 @@ public class Room {
     public Theater getTheater() { return theater; }
     public void setTheater(Theater theater) { this.theater = theater; }
 
-    public Seat[][] getSeatmap() { return seatmap; }
-    public void setSeatmap(Seat[][] seatmap) { this.seatmap = seatmap; }
+    public Seat[][] getSeatmap() {
+        if (seatmap == null && seatmapJson != null) {
+            try {
+                seatmap = MAPPER.readValue(seatmapJson, Seat[][].class);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize seatmap", e);
+            }
+        }
+        return seatmap;
+    }
+
+    public void setSeatmap(Seat[][] seatmap) {
+        this.seatmap = seatmap;
+        if (seatmap != null) {
+            try {
+                this.seatmapJson = MAPPER.writeValueAsString(seatmap);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to serialize seatmap", e);
+            }
+        }
+    }
+
+    public String getSeatmapJson() { return seatmapJson; }
+    public void setSeatmapJson(String seatmapJson) {
+        this.seatmapJson = seatmapJson;
+        loadSeatmap();
+    }
 }

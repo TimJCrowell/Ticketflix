@@ -8,6 +8,8 @@ import com.moviebooking.exception.BadRequestException;
 import com.moviebooking.exception.NotFoundException;
 import com.moviebooking.service.AuthService;
 import com.moviebooking.service.TheaterService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/theaters")
 public class TheaterController {
+
+    private static final Logger log = LoggerFactory.getLogger(TheaterController.class);
 
     @Autowired
     private TheaterService theaterService;
@@ -129,6 +133,7 @@ public class TheaterController {
         } catch (BadRequestException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
+            log.error("addRoom failed", e);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }

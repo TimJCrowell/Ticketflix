@@ -10,6 +10,7 @@ import com.moviebooking.repository.TheaterRepository;
 import com.moviebooking.util.SnowflakeIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -102,14 +103,15 @@ public class TheaterService {
      *                             {@code seatmap} is null/empty
      * @throws RuntimeException    if the room number already exists in this theater
      */
+    @Transactional
     public Theater addRoom(Long theaterId, int number, Seat[][] seatmap) {
         Theater theater = theaterRepository.findById(theaterId)
                 .orElseThrow(() -> new NotFoundException("Theater not found: " + theaterId));
         if (number <= 0) {
             throw new BadRequestException("Room number must be a positive integer");
         }
-        if (seatmap == null || seatmap.length == 0) {
-            throw new BadRequestException("Seatmap must not be null or empty");
+        if (seatmap == null) {
+            seatmap = defaultSeatmap();
         }
         if (roomRepository.existsByTheaterAndNumber(theater, number)) {
             throw new RuntimeException("Room " + number + " already exists in this theater");
@@ -117,6 +119,22 @@ public class TheaterService {
         Room room = new Room(idGenerator.nextId(), number, theater, seatmap);
         roomRepository.save(room);
         return theaterRepository.findById(theaterId).orElseThrow();
+    }
+    
+    /**
+     * Builds the default seatmap matching the front-end placeholder layout:
+     * 8 rows (A–H) × 14 seats, all available and non-accessible.
+     */
+    private static Seat[][] defaultSeatmap() {
+        final int ROWS = 8;
+        final int COLS = 14;
+        Seat[][] map = new Seat[ROWS][COLS];
+        for (int r = 0; r < ROWS; r++) {
+            for (int c = 0; c < COLS; c++) {
+                map[r][c] = new Seat(true, false);
+            }
+        }
+        return map;
     }
 
     /**
