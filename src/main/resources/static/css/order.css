@@ -1,0 +1,81 @@
+/* ============================================================
+   TICKETFLIX — ORDER DETAIL PAGE  (order.html)
+   ============================================================ */
+
+.order-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.order-main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.order-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px 32px;
+  box-shadow: var(--shadow);
+}
+
+.order-card__title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 28px;
+}
+
+.order-rows {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.order-row:last-child { border-bottom: none; }
+
+.order-row__label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.order-row__value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+  max-width: 60%;
+}
+
+.order-row--total {
+  background: var(--bg-elevated);
+}
+
+.order-row--total .order-row__label {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.order-row--total .order-row__value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}

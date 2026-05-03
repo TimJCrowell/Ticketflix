@@ -85,9 +85,8 @@ export class SeatSelectionPage extends BasePage {
       // Stub confirm
       await new Promise(r => setTimeout(r, 700));
 
-      this.bookingService.clearPending();
-      alert(`Booking confirmed!\nSeats: ${this.selected.map(s => s.label).join(', ')}\nTotal: $${(this.selected.length * pricePerSeat).toFixed(2)}`);
-      Router.navigateTo('/home.html');
+      sessionStorage.setItem('ticketflix_seats', JSON.stringify(this.selected.map(s => s.label)));
+      Router.navigateTo('/order.html');
     });
   }
 }

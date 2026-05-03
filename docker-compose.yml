@@ -1,15 +1,18 @@
 services:
   app:
-    build: 
+    build:
       context: .devcontainer
       dockerfile: Dockerfile
     volumes:
       - .:/workspace:cached
       - ./.m2-cache:/home/ubuntu/.m2
-    command: sleep infinity
+    working_dir: /workspace
+    command: mvn spring-boot:run
     depends_on:
-      - db
-      - mailhog
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
     ports:
       - "8080:8080"
 
@@ -24,13 +27,17 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U springuser -d movie_booking_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   mailhog:
     image: mailhog/mailhog
     ports:
-      - "1025:1025" 
-      - "8025:8025" 
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   postgres-data:
-
