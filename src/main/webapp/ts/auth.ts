@@ -2,44 +2,30 @@
 let loginEmail = '';
 let loginRole = '';
 
-// --- Session storage ---
+// --- Cookie helpers ---
 
 /**
- * Persists a session to localStorage after a successful login.
+ * Returns the value of a cookie by name, or null if not present.
  *
- * @param token     - Snowflake token string returned by the server.
- * @param rawKey    - Base64-encoded HMAC key returned by the server.
- * @param expiresAt - ISO-8601 expiry timestamp returned by the server.
+ * @param name - The cookie name to look up.
  */
-function saveSession(token: string, rawKey: string, expiresAt: string): void {
-    localStorage.setItem('tf_token', token);
-    localStorage.setItem('tf_rawKey', rawKey);
-    localStorage.setItem('tf_expiresAt', expiresAt);
+function getCookie(name: string): string | null {
+    const match = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+    return match ? decodeURIComponent(match.split('=')[1]) : null;
 }
 
 /**
- * Removes all session keys from localStorage, effectively logging the user out
- * on the client side.
- */
-function clearSession(): void {
-    localStorage.removeItem('tf_token');
-    localStorage.removeItem('tf_rawKey');
-    localStorage.removeItem('tf_expiresAt');
-}
-
-/**
- * Reads the stored session from localStorage and updates the session-box
+ * Reads the session token from the tf_token cookie and updates the session-box
  * display. Shows the box when a session is present; hides it otherwise.
+ * tf_key is HttpOnly and cannot be read by JavaScript.
  */
 function renderStoredSession(): void {
-    const token     = localStorage.getItem('tf_token');
-    const rawKey    = localStorage.getItem('tf_rawKey');
-    const expiresAt = localStorage.getItem('tf_expiresAt');
+    const token = getCookie('tf_token');
     const box = document.getElementById('session-box') as HTMLElement;
-    if (token && rawKey) {
+    if (token) {
         (document.getElementById('stored-token')   as HTMLElement).textContent = token;
-        (document.getElementById('stored-rawkey')  as HTMLElement).textContent = rawKey;
-        (document.getElementById('stored-expires') as HTMLElement).textContent = expiresAt ?? '';
+        (document.getElementById('stored-rawkey')  as HTMLElement).textContent = '[secured — HttpOnly cookie]';
+        (document.getElementById('stored-expires') as HTMLElement).textContent = '';
         box.style.display = 'block';
     } else {
         box.style.display = 'none';
@@ -189,8 +175,8 @@ function handleLoginRole(e: Event): void {
 
 /**
  * Handles login step 3: submits credentials to `POST /api/auth/login/password`
- * and, on success, saves the session to localStorage and shows the success
- * section with the token and raw key.
+ * and, on success, reads the session token from the tf_token cookie set by the
+ * server and shows the success section.
  *
  * @param e - The form submit event.
  */
@@ -211,11 +197,11 @@ async function handleLoginPassword(e: Event): Promise<void> {
             return;
         }
 
-        const data = await res.json() as { token: string; rawKey: string; expiresAt: string };
-        saveSession(data.token, data.rawKey, data.expiresAt);
-        (document.getElementById('result-token')   as HTMLElement).textContent = data.token;
-        (document.getElementById('result-rawkey')  as HTMLElement).textContent = data.rawKey;
-        (document.getElementById('result-expires') as HTMLElement).textContent = data.expiresAt;
+        // Cookies are set by the server; read tf_token from document.cookie.
+        // tf_key is HttpOnly and not accessible to JavaScript.
+        (document.getElementById('result-token')   as HTMLElement).textContent = getCookie('tf_token') ?? '';
+        (document.getElementById('result-rawkey')  as HTMLElement).textContent = '[secured — HttpOnly cookie]';
+        (document.getElementById('result-expires') as HTMLElement).textContent = '';
         clearStatus();
         form.reset();
         showSection('section-success');
@@ -244,25 +230,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('form-login-password')!.addEventListener('submit', handleLoginPassword);
 
     document.getElementById('btn-logout')!.addEventListener('click', async () => {
-        const token  = localStorage.getItem('tf_token');
-        const rawKey = localStorage.getItem('tf_rawKey');
-        if (token && rawKey) {
-            try {
-                const res = await fetch('/api/auth/logout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token, rawKey })
-                });
-                if (!res.ok) {
-                    setStatus(await res.text(), true);
-                    return;
-                }
-            } catch {
-                setStatus('Could not reach the server. Please try again.', true);
+        try {
+            // Cookies are sent automatically; no request body needed.
+            const res = await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+            if (!res.ok) {
+                setStatus(await res.text(), true);
                 return;
             }
+        } catch {
+            setStatus('Could not reach the server. Please try again.', true);
+            return;
         }
-        clearSession();
         renderStoredSession();
         setStatus('Logged out.');
         showSection('section-login-email');
