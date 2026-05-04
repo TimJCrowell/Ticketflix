@@ -2,6 +2,7 @@ package com.moviebooking;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Entry point for the Ticketflix movie-booking application.
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * <p>Bootstraps the Spring Boot context and starts the embedded web server.</p>
  */
 @SpringBootApplication
+@EnableScheduling
 public class MovieBookingApplication {
 
     /**
