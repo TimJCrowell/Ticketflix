@@ -1,6 +1,5 @@
 package com.moviebooking.dto;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -8,8 +7,6 @@ import java.util.List;
  */
 public class CheckoutRequest
 {
-    /** Deprecated: customer is resolved from Authorization token, not request body. */
-    private long userId;
 
     /** Identifier of the showtime being purchased. */
     private long showtimeId;
@@ -18,14 +15,10 @@ public class CheckoutRequest
     /** Seat labels selected by the user. */
     private List<String> seatLabels;
 
-    /** Total submitted by the client for server-side validation. */
-    private BigDecimal clientTotal;
+    /** card number as entered, validated and then discarded */
+    private String cardNumber;
 
-    /** @return deprecated user id field; customer is resolved from Authorization token */
-    public long getUserId() {return userId;}
 
-    /** @param userId deprecated field; ignored when token-based checkout is used.*/
-    public void setUserId(long userId) {this.userId = userId;}
 
     /** @return Showtime Id*/
     public long getShowtimeId() {return showtimeId;}
@@ -39,9 +32,9 @@ public class CheckoutRequest
     /** @param seatLabels selected seat labels to be set*/
     public void setSeatLabels(List<String> seatLabels) {this.seatLabels = seatLabels;}
 
-    /** @return  Total provided by client*/
-    public BigDecimal getClientTotal() {return clientTotal;}
+    /** @return entered card number*/
+    public String getCardNumber() {return cardNumber;}
 
-    /** @param clientTotal Total to be set*/
-    public void setClientTotal(BigDecimal clientTotal) {this.clientTotal = clientTotal;}
+    /** @param card number entered by user*/
+    public void setCardNumber(String cardNumber) {this.cardNumber = cardNumber;}
 }//end of CheckoutRequest class
