@@ -7,6 +7,8 @@ import com.moviebooking.dto.CheckoutResponse;
 import com.moviebooking.repository.CheckoutRepository;
 import com.moviebooking.service.EmailService;
 import com.moviebooking.util.SnowflakeIdGenerator;
+import com.moviebooking.util.TicketPricing;
+import com.moviebooking.util.CardValicationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -65,19 +67,16 @@ public class CheckoutService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one seat is required");
         }//end if
 
-        BigDecimal total;
-        if(request.getClientTotal() != null)
+        String pan = CardValidationUtil.normalizePan(request.getCardNumber());
+        if(!CardValidationUtil.isPlausiblePanFormat(pan))
         {
-            total = request.getClientTotal();
-        }else
-        {
-            total = BigDecimal.ZERO;
-        }//end if else
-
-        if(total.compareTo(BigDecimal.ZERO) <= 0)
-        {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Total must be greater than 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid card number.");
         }//end if
+
+        int ticketCount = seats.size();
+        BigDecimal total = TicketPricing.PRICE_PER_SEAT
+                .multiply(BigDecimal.valueOf(ticketCount))
+                .setScale(2, RoundingMode.HALF_UP);
 
         Checkout checkout = new Checkout();
         checkout.setCheckoutId(idGenerator.nextId());
