@@ -8,7 +8,7 @@ import com.moviebooking.repository.CheckoutRepository;
 import com.moviebooking.service.EmailService;
 import com.moviebooking.util.SnowflakeIdGenerator;
 import com.moviebooking.util.TicketPricing;
-import com.moviebooking.util.CardValicationUtil;
+import com.moviebooking.util.CardValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
