@@ -39,4 +39,5 @@ public class CheckoutRequest
     public String getCardNumber() {return cardNumber;}
 
     /** @param card number entered by user*/
+    public void setCardNumber(String cardNumber) {this.cardNumber = cardNumber;}
 }//end of CheckoutRequest class
