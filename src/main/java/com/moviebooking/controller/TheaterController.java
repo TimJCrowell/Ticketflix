@@ -2,6 +2,7 @@ package com.moviebooking.controller;
 
 import com.moviebooking.dto.RoomRequest;
 import com.moviebooking.dto.TheaterRequest;
+import com.moviebooking.entity.SeatSlot;
 import com.moviebooking.entity.Theater;
 import com.moviebooking.entity.User;
 import com.moviebooking.exception.BadRequestException;
@@ -25,12 +26,14 @@ import java.util.List;
  * and {@code X-Session-Key: <base64Key>} headers.</p>
  *
  * <pre>
- * GET    /api/theaters                        — list all theaters
- * GET    /api/theaters/{id}                   — get one theater with rooms
- * POST   /api/theaters                        — create theater (manager)
- * DELETE /api/theaters/{id}                   — delete theater (manager)
- * POST   /api/theaters/{id}/rooms             — add room (manager)
- * DELETE /api/theaters/{id}/rooms/{roomId}    — remove room (manager)
+ * GET    /api/theaters                                  — list all theaters
+ * GET    /api/theaters/{id}                             — get one theater with rooms
+ * POST   /api/theaters                                  — create theater (manager)
+ * DELETE /api/theaters/{id}                             — delete theater (manager)
+ * POST   /api/theaters/{id}/rooms                       — add room (manager)
+ * GET    /api/theaters/{id}/rooms/{roomId}/seatmap      — get room seatmap (manager)
+ * PUT    /api/theaters/{id}/rooms/{roomId}/seatmap      — replace room seatmap (manager)
+ * DELETE /api/theaters/{id}/rooms/{roomId}              — remove room (manager)
  * </pre>
  */
 @RestController
@@ -135,6 +138,60 @@ public class TheaterController {
         } catch (RuntimeException e) {
             log.error("addRoom failed", e);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Returns the seatmap for a room.
+     *
+     * @param id         the theater's Snowflake ID
+     * @param roomId     the room's Snowflake ID
+     * @param authHeader {@code Authorization: Bearer <token>}
+     * @param sessionKey {@code X-Session-Key: <base64Key>}
+     */
+    @GetMapping("/{id}/rooms/{roomId}/seatmap")
+    public ResponseEntity<?> getRoomSeatmap(
+            @PathVariable Long id,
+            @PathVariable Long roomId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(authHeader, sessionKey);
+        if (authError != null) return authError;
+        try {
+            return ResponseEntity.ok(theaterService.getRoomSeatmap(id, roomId));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Replaces the seatmap for a room.
+     *
+     * <p>The request body is a 2-D array of {@link SeatSlot} objects. A {@code null}
+     * entry means no seat at that grid position. Existing showtimes are unaffected;
+     * their seatmaps were copied at creation time and evolve independently.</p>
+     *
+     * @param id         the theater's Snowflake ID
+     * @param roomId     the room's Snowflake ID
+     * @param seatmap    replacement seatmap
+     * @param authHeader {@code Authorization: Bearer <token>}
+     * @param sessionKey {@code X-Session-Key: <base64Key>}
+     */
+    @PutMapping("/{id}/rooms/{roomId}/seatmap")
+    public ResponseEntity<?> updateRoomSeatmap(
+            @PathVariable Long id,
+            @PathVariable Long roomId,
+            @RequestBody SeatSlot[][] seatmap,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(authHeader, sessionKey);
+        if (authError != null) return authError;
+        try {
+            return ResponseEntity.ok(theaterService.updateRoomSeatmap(id, roomId, seatmap));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

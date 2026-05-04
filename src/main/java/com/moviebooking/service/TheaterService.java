@@ -138,6 +138,52 @@ public class TheaterService {
     }
 
     /**
+     * Returns the seatmap for a specific room.
+     *
+     * @param theaterId the theater's Snowflake ID
+     * @param roomId    the room's Snowflake ID
+     * @return the room's {@link SeatSlot} grid
+     * @throws NotFoundException if the theater or room does not exist, or the
+     *                           room does not belong to the specified theater
+     */
+    public SeatSlot[][] getRoomSeatmap(Long theaterId, Long roomId) {
+        Theater theater = theaterRepository.findById(theaterId)
+                .orElseThrow(() -> new NotFoundException("Theater not found: " + theaterId));
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("Room not found: " + roomId));
+        if (!room.getTheater().getId().equals(theater.getId())) {
+            throw new NotFoundException("Room " + roomId + " does not belong to theater " + theaterId);
+        }
+        return room.getSeatmap();
+    }
+
+    /**
+     * Replaces the seatmap for a specific room.
+     *
+     * @param theaterId the theater's Snowflake ID
+     * @param roomId    the room's Snowflake ID
+     * @param seatmap   the new {@link SeatSlot} grid; must not be null or empty
+     * @return the updated {@link SeatSlot} grid as persisted
+     * @throws NotFoundException   if the theater or room does not exist, or the
+     *                             room does not belong to the specified theater
+     * @throws BadRequestException if {@code seatmap} is null or has no rows
+     */
+    public SeatSlot[][] updateRoomSeatmap(Long theaterId, Long roomId, SeatSlot[][] seatmap) {
+        Theater theater = theaterRepository.findById(theaterId)
+                .orElseThrow(() -> new NotFoundException("Theater not found: " + theaterId));
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("Room not found: " + roomId));
+        if (!room.getTheater().getId().equals(theater.getId())) {
+            throw new NotFoundException("Room " + roomId + " does not belong to theater " + theaterId);
+        }
+        if (seatmap == null || seatmap.length == 0) {
+            throw new BadRequestException("Seatmap must not be null or empty");
+        }
+        room.setSeatmap(seatmap);
+        return roomRepository.save(room).getSeatmap();
+    }
+
+    /**
      * Removes a room from a theater.
      *
      * @param theaterId the theater's Snowflake ID
