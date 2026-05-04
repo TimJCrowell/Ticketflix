@@ -1,6 +1,5 @@
 package com.moviebooking.dto;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -8,8 +7,6 @@ import java.util.List;
  */
 public class CheckoutRequest
 {
-    /** Deprecated: customer is resolved from Authorization token, not request body. */
-    private long userId;
 
     /** Identifier of the showtime being purchased. */
     private long showtimeId;
