@@ -3,8 +3,8 @@ package com.moviebooking.util;
 /**
  * Local card number checks only (Luhn / length). No payment network, no storage.
  */
-public final CardValidationUtil{
-    private CardValidaitonUtil(){}
+public final class CardValidationUtil{
+    private CardValidationUtil(){}
 
     private static final int MIN_PAN_LENGTH = 13;
     private static final int MAX_PAN_LENGTH = 19;
@@ -35,7 +35,7 @@ public final CardValidationUtil{
         return sb.toString();
     }//end normalizePan()
 
-    public static boolean isPlausiblePanFormat(string panDigits)
+    public static boolean isPlausiblePanFormat(String panDigits)
     {
         if(panDigits == null)
         {
@@ -49,7 +49,7 @@ public final CardValidationUtil{
         return luhn(panDigits);
     }//end isPlausiblePanFormat()
 
-    public static luhn(String panDigits)
+    public static boolean luhn(String panDigits)
     {
         int sum = 0;
         boolean alternate = false;
