@@ -11,8 +11,12 @@ import jakarta.persistence.*;
  *
  * <p>Room numbers are unique per theater (e.g. rooms 1, 2, 3 in "Northridge").
  * The {@code seatmap} is stored as JSON text: an array of row arrays, where each
- * row array holds {@link Seat} objects. Row index 0 = row A, index 1 = row B, etc.
- * Rows may have different lengths.</p>
+ * row array holds {@link SeatSlot} objects describing the physical layout.
+ * Row index 0 = row A, index 1 = row B, etc. Rows may have different lengths.
+ * A {@code null} entry means no seat exists at that grid position.</p>
+ *
+ * <p>Availability state is not stored here; it lives on the per-showtime seatmap
+ * copied from this layout at showtime creation.</p>
  */
 @Entity
 @Table(name = "rooms",
@@ -39,11 +43,11 @@ public class Room {
 
     @Transient
     @JsonProperty("seatmap")
-    private Seat[][] seatmap;
+    private SeatSlot[][] seatmap;
 
     public Room() {}
 
-    public Room(Long id, int number, Theater theater, Seat[][] seatmap) {
+    public Room(Long id, int number, Theater theater, SeatSlot[][] seatmap) {
         this.id = id;
         this.number = number;
         this.theater = theater;
@@ -54,7 +58,7 @@ public class Room {
     private void loadSeatmap() {
         if (seatmapJson != null) {
             try {
-                this.seatmap = MAPPER.readValue(seatmapJson, Seat[][].class);
+                this.seatmap = MAPPER.readValue(seatmapJson, SeatSlot[][].class);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to deserialize seatmap", e);
             }
@@ -70,10 +74,10 @@ public class Room {
     public Theater getTheater() { return theater; }
     public void setTheater(Theater theater) { this.theater = theater; }
 
-    public Seat[][] getSeatmap() {
+    public SeatSlot[][] getSeatmap() {
         if (seatmap == null && seatmapJson != null) {
             try {
-                seatmap = MAPPER.readValue(seatmapJson, Seat[][].class);
+                seatmap = MAPPER.readValue(seatmapJson, SeatSlot[][].class);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to deserialize seatmap", e);
             }
@@ -81,7 +85,7 @@ public class Room {
         return seatmap;
     }
 
-    public void setSeatmap(Seat[][] seatmap) {
+    public void setSeatmap(SeatSlot[][] seatmap) {
         this.seatmap = seatmap;
         if (seatmap != null) {
             try {

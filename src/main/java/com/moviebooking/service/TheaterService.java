@@ -1,7 +1,7 @@
 package com.moviebooking.service;
 
 import com.moviebooking.entity.Room;
-import com.moviebooking.entity.Seat;
+import com.moviebooking.entity.SeatSlot;
 import com.moviebooking.entity.Theater;
 import com.moviebooking.exception.BadRequestException;
 import com.moviebooking.exception.NotFoundException;
@@ -90,7 +90,7 @@ public class TheaterService {
      * Adds a room to a theater.
      *
      * <p>Room numbers must be unique within the theater. The seatmap is a
-     * 2-D array of {@link Seat} objects where the outer index is the row
+     * 2-D array of {@link SeatSlot} objects where the outer index is the row
      * (A = 0, B = 1, …) and the inner index is the seat position within
      * that row. Rows may have different lengths.</p>
      *
@@ -104,7 +104,7 @@ public class TheaterService {
      * @throws RuntimeException    if the room number already exists in this theater
      */
     @Transactional
-    public Theater addRoom(Long theaterId, int number, Seat[][] seatmap) {
+    public Theater addRoom(Long theaterId, int number, SeatSlot[][] seatmap) {
         Theater theater = theaterRepository.findById(theaterId)
                 .orElseThrow(() -> new NotFoundException("Theater not found: " + theaterId));
         if (number <= 0) {
@@ -123,15 +123,15 @@ public class TheaterService {
     
     /**
      * Builds the default seatmap matching the front-end placeholder layout:
-     * 8 rows (A–H) × 14 seats, all available and non-accessible.
+     * 8 rows (A–H) × 14 seats, none accessible.
      */
-    private static Seat[][] defaultSeatmap() {
+    private static SeatSlot[][] defaultSeatmap() {
         final int ROWS = 8;
         final int COLS = 14;
-        Seat[][] map = new Seat[ROWS][COLS];
+        SeatSlot[][] map = new SeatSlot[ROWS][COLS];
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS; c++) {
-                map[r][c] = new Seat(true, false);
+                map[r][c] = new SeatSlot(false);
             }
         }
         return map;
