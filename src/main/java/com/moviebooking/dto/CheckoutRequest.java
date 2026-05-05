@@ -9,7 +9,7 @@ public class CheckoutRequest
 {
 
     /** Identifier of the showtime being purchased. */
-    private long showtimeId;
+    private Long showtimeId;
 
 
     /** Seat labels selected by the user. */
@@ -21,10 +21,10 @@ public class CheckoutRequest
 
 
     /** @return Showtime Id*/
-    public long getShowtimeId() {return showtimeId;}
+    public Long getShowtimeId() {return showtimeId;}
 
     /** @param showtimeId Showtime Id to be set*/
-    public void setShowtimeId(long showtimeId) {this.showtimeId = showtimeId;}
+    public void setShowtimeId(Long showtimeId) {this.showtimeId = showtimeId;}
 
     /** @return selected seat labels*/
     public List<String> getSeatLabels() {return seatLabels;}

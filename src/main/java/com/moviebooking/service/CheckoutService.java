@@ -72,6 +72,11 @@ public class CheckoutService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required");
         }//end if
 
+        if (request.getShowtimeId() == null)
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Showtime ID is required");
+        }//end if
+
         Showtime showtime = showtimeRepository.findById(request.getShowtimeId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Showtime not found: " + request.getShowtimeId()));
         if (!showtime.getDatetime().isAfter(LocalDateTime.now()))
@@ -165,6 +170,38 @@ public class CheckoutService
                 saved.getStatus(),
                 saved.getCreatedAt()
         );
+    }
+
+    /**
+     * Returns a checkout by ID. Managers may retrieve any checkout; other users
+     * may only retrieve their own.
+     *
+     * @param id        the checkout's Snowflake ID
+     * @param requester the authenticated user making the request
+     * @return the matching {@link Checkout}
+     * @throws ResponseStatusException (404) if no checkout exists with that ID,
+     *                                 (403) if the requester does not own it
+     */
+    public Checkout getCheckout(Long id, User requester)
+    {
+        Checkout checkout = checkoutRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Checkout not found: " + id));
+        if (!"MANAGER".equals(requester.getRole()) && !checkout.getUser().getUserID().equals(requester.getUserID()))
+        {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }//end if
+        return checkout;
+    }
+
+    /**
+     * Returns all checkouts for a given showtime.
+     *
+     * @param showtimeId the showtime's Snowflake ID
+     * @return list of {@link Checkout} entities for that showtime
+     */
+    public List<Checkout> getCheckoutsByShowtime(Long showtimeId)
+    {
+        return checkoutRepository.findByShowtimeId(showtimeId);
     }
 
     /**
