@@ -9,7 +9,7 @@ export class SignInPage extends BasePage {
     this.root.innerHTML = `
       <div class="auth-page">
         <header class="auth-header">
-          <a class="auth-header__logo" href="/home.html">TicketFlix</a>
+          <a class="auth-header__logo" href="/index.html">TicketFlix</a>
         </header>
         <main class="auth-center">
           <div class="auth-card">
@@ -41,7 +41,7 @@ export class SignInPage extends BasePage {
 
       const result = await this.auth.login(email, password);
       if (result.ok) {
-        Router.navigateTo('/home.html');
+        Router.navigateTo('/index.html');
       } else {
         err.textContent = result.message;
       }

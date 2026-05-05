@@ -21,7 +21,7 @@ export class MovieDetailPage extends BasePage {
   render(): void {
     const movieId = Number(sessionStorage.getItem('tf_movie_id') ?? '1');
     const found   = this.movieService.getMovieById(movieId);
-    if (!found) { Router.navigateTo('/home.html'); return; }
+    if (!found) { Router.navigateTo('/index.html'); return; }
     this.movie   = found;
     this.theaters = this.movieService.getAllTheaters();
 

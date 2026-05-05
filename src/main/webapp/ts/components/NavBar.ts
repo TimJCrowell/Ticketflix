@@ -12,7 +12,7 @@ export class NavBar {
     const nav = document.createElement('nav');
     nav.className = 'navbar';
     nav.innerHTML = `
-      <a class="navbar__logo" href="/home.html">TicketFlix</a>
+      <a class="navbar__logo" href="/index.html">TicketFlix</a>
       <div class="navbar__actions">${this.buildActions()}</div>
     `;
     parent.insertBefore(nav, parent.firstChild);
@@ -40,9 +40,9 @@ export class NavBar {
           case 'register':   Router.navigateTo('/register.html'); break;
           case 'logout':
             this.authService.logout();
-            Router.navigateTo('/home.html');
+            Router.navigateTo('/index.html');
             break;
-          case 'my-tickets': Router.navigateTo('/home.html');     break;
+          case 'my-tickets': Router.navigateTo('/index.html');     break;
         }
       });
     });
