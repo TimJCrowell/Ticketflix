@@ -19,7 +19,7 @@ import java.util.List;
  *
  * <p>Read endpoints are public. Write endpoints ({@code POST}, {@code PUT},
  * {@code DELETE}) require a valid manager session via
- * {@code Authorization: Bearer <token>} and {@code X-Session-Key: <base64Key>} headers.</p>
+ * {@code tf_token} and {@code tf_key} cookies.</p>
  *
  * <pre>
  * GET    /api/movies       — list all movies
@@ -61,15 +61,15 @@ public class MovieController {
      * Creates a new movie.
      *
      * @param request    body containing movie fields
-     * @param authHeader {@code Authorization: Bearer <token>}
-     * @param sessionKey {@code X-Session-Key: <base64Key>}
+     * @param token      {@code tf_token} cookie
+     * @param sessionKey {@code tf_key} cookie
      */
     @PostMapping
     public ResponseEntity<?> createMovie(
             @RequestBody MovieRequest request,
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
-        ResponseEntity<?> authError = checkManager(authHeader, sessionKey);
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(token, sessionKey);
         if (authError != null) return authError;
         try {
             Movie movie = movieService.createMovie(
@@ -89,16 +89,16 @@ public class MovieController {
      *
      * @param id         the movie's Snowflake ID
      * @param request    body containing updated movie fields
-     * @param authHeader {@code Authorization: Bearer <token>}
-     * @param sessionKey {@code X-Session-Key: <base64Key>}
+     * @param token      {@code tf_token} cookie
+     * @param sessionKey {@code tf_key} cookie
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMovie(
             @PathVariable Long id,
             @RequestBody MovieRequest request,
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
-        ResponseEntity<?> authError = checkManager(authHeader, sessionKey);
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(token, sessionKey);
         if (authError != null) return authError;
         try {
             Movie movie = movieService.updateMovie(
@@ -119,15 +119,15 @@ public class MovieController {
      * Deletes a movie.
      *
      * @param id         the movie's Snowflake ID
-     * @param authHeader {@code Authorization: Bearer <token>}
-     * @param sessionKey {@code X-Session-Key: <base64Key>}
+     * @param token      {@code tf_token} cookie
+     * @param sessionKey {@code tf_key} cookie
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMovie(
             @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
-        ResponseEntity<?> authError = checkManager(authHeader, sessionKey);
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(token, sessionKey);
         if (authError != null) return authError;
         try {
             movieService.deleteMovie(id);
@@ -143,12 +143,8 @@ public class MovieController {
      * @return {@code null} if auth is valid; a {@link ResponseEntity} error
      *         (401 or 403) to return immediately if auth fails
      */
-    private ResponseEntity<?> checkManager(String authHeader, String sessionKey) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
-        }
-        String token = authHeader.substring(7).trim();
-        if (token.isEmpty() || sessionKey == null || sessionKey.isBlank()) {
+    private ResponseEntity<?> checkManager(String token, String sessionKey) {
+        if (token == null || token.isBlank() || sessionKey == null || sessionKey.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
         User user;

@@ -19,7 +19,7 @@ import java.util.List;
  *
  * <p>Read endpoints are public. Write endpoints ({@code POST}, {@code PUT},
  * {@code DELETE}) require a valid manager session via
- * {@code Authorization: Bearer <token>} and {@code X-Session-Key: <base64Key>} headers.</p>
+ * {@code tf_token} and {@code tf_key} cookies.</p>
  *
  * <pre>
  * GET    /api/showtimes              — list all showtimes (optional ?movieId= or ?roomId=)
@@ -63,15 +63,15 @@ public class ShowtimeController {
      * Schedules a new showtime. Copies the room's seatmap at creation time.
      *
      * @param request    body containing movieId, roomId, and datetime
-     * @param authHeader {@code Authorization: Bearer <token>}
-     * @param sessionKey {@code X-Session-Key: <base64Key>}
+     * @param token      {@code tf_token} cookie
+     * @param sessionKey {@code tf_key} cookie
      */
     @PostMapping
     public ResponseEntity<?> createShowtime(
             @RequestBody ShowtimeRequest request,
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
-        ResponseEntity<?> authError = checkManager(authHeader, sessionKey);
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(token, sessionKey);
         if (authError != null) return authError;
         try {
             Showtime showtime = showtimeService.createShowtime(
@@ -89,16 +89,16 @@ public class ShowtimeController {
      *
      * @param id         the showtime's Snowflake ID
      * @param request    body containing updated movieId, roomId, and datetime
-     * @param authHeader {@code Authorization: Bearer <token>}
-     * @param sessionKey {@code X-Session-Key: <base64Key>}
+     * @param token      {@code tf_token} cookie
+     * @param sessionKey {@code tf_key} cookie
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateShowtime(
             @PathVariable Long id,
             @RequestBody ShowtimeRequest request,
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
-        ResponseEntity<?> authError = checkManager(authHeader, sessionKey);
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(token, sessionKey);
         if (authError != null) return authError;
         try {
             Showtime showtime = showtimeService.updateShowtime(
@@ -115,15 +115,15 @@ public class ShowtimeController {
      * Deletes a showtime.
      *
      * @param id         the showtime's Snowflake ID
-     * @param authHeader {@code Authorization: Bearer <token>}
-     * @param sessionKey {@code X-Session-Key: <base64Key>}
+     * @param token      {@code tf_token} cookie
+     * @param sessionKey {@code tf_key} cookie
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteShowtime(
             @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
-        ResponseEntity<?> authError = checkManager(authHeader, sessionKey);
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(token, sessionKey);
         if (authError != null) return authError;
         try {
             showtimeService.deleteShowtime(id);
@@ -139,12 +139,8 @@ public class ShowtimeController {
      * @return {@code null} if auth is valid; a {@link ResponseEntity} error
      *         (401 or 403) to return immediately if auth fails
      */
-    private ResponseEntity<?> checkManager(String authHeader, String sessionKey) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
-        }
-        String token = authHeader.substring(7).trim();
-        if (token.isEmpty() || sessionKey == null || sessionKey.isBlank()) {
+    private ResponseEntity<?> checkManager(String token, String sessionKey) {
+        if (token == null || token.isBlank() || sessionKey == null || sessionKey.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
         User user;

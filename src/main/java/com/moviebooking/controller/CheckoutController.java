@@ -35,24 +35,21 @@ public class CheckoutController
     @PostMapping
     public ResponseEntity<CheckoutResponse> checkout(
             @RequestBody CheckoutRequest request,
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestHeader(value = "X-Session-Key", required = false) String sessionKey) {
-        if (authHeader == null || !authHeader.startsWith("Bearer "))
-        {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }//end if
-        String token = authHeader.substring(7).trim();
-        if (token.isEmpty() || sessionKey == null || sessionKey.isBlank())
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String sessionKey) {
+        if (token == null || token.isBlank() || sessionKey == null || sessionKey.isBlank())
         {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }//end if
 
+        User customer;
         try{
-            User customer = authService.validateToken(token, sessionKey);
-            CheckoutResponse response = checkoutService.createCheckout(request, customer);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            customer = authService.validateToken(token, sessionKey);
         } catch(RuntimeException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }//end try catch
+
+        CheckoutResponse response = checkoutService.createCheckout(request, customer);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }//end of checkoutcontroller class
