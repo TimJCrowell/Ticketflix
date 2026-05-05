@@ -1,10 +1,12 @@
 package com.moviebooking.service;
 
 import com.moviebooking.entity.Checkout;
+import com.moviebooking.entity.Showtime;
 import com.moviebooking.entity.User;
 import com.moviebooking.dto.CheckoutRequest;
 import com.moviebooking.dto.CheckoutResponse;
 import com.moviebooking.repository.CheckoutRepository;
+import com.moviebooking.repository.ShowtimeRepository;
 import com.moviebooking.service.EmailService;
 import com.moviebooking.util.SnowflakeIdGenerator;
 import com.moviebooking.util.TicketPricing;
@@ -37,6 +39,9 @@ public class CheckoutService
     private CheckoutRepository checkoutRepository;
 
     @Autowired
+    private ShowtimeRepository showtimeRepository;
+
+    @Autowired
     private EmailService emailService;
 
     @Autowired
@@ -57,9 +62,11 @@ public class CheckoutService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required");
         }//end if
 
-        if(request.getShowtimeId() <= 0)
+        Showtime showtime = showtimeRepository.findById(request.getShowtimeId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Showtime not found: " + request.getShowtimeId()));
+        if (!showtime.getDatetime().isAfter(LocalDateTime.now()))
         {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Showtimeid required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Showtime has already passed");
         }//end if
 
         List<String> seats = request.getSeatLabels();
