@@ -3,11 +3,13 @@ package com.moviebooking.service;
 import com.moviebooking.entity.Checkout;
 import com.moviebooking.entity.Seat;
 import com.moviebooking.entity.Showtime;
+import com.moviebooking.entity.Ticket;
 import com.moviebooking.entity.User;
 import com.moviebooking.dto.CheckoutRequest;
 import com.moviebooking.dto.CheckoutResponse;
 import com.moviebooking.repository.CheckoutRepository;
 import com.moviebooking.repository.ShowtimeRepository;
+import com.moviebooking.repository.TicketRepository;
 import com.moviebooking.service.EmailService;
 import com.moviebooking.util.SnowflakeIdGenerator;
 import com.moviebooking.util.TicketPricing;
@@ -21,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -43,6 +46,9 @@ public class CheckoutService
 
     @Autowired
     private ShowtimeRepository showtimeRepository;
+
+    @Autowired
+    private TicketRepository ticketRepository;
 
     @Autowired
     private EmailService emailService;
@@ -129,6 +135,20 @@ public class CheckoutService
         checkout.setCreatedAt(LocalDateTime.now());
 
         Checkout saved = checkoutRepository.save(checkout);
+
+        List<Ticket> tickets = new ArrayList<>();
+        for (String label : seats)
+        {
+            int[] rc = parseSeatLabel(label);
+            Ticket ticket = new Ticket();
+            ticket.setId(idGenerator.nextId());
+            ticket.setShowtimeId(saved.getShowtimeId());
+            ticket.setCheckoutId(saved.getCheckoutId());
+            ticket.setSeatRow(rc[0]);
+            ticket.setSeatCol(rc[1]);
+            tickets.add(ticket);
+        }//end for
+        ticketRepository.saveAll(tickets);
 
         try{
             emailService.sendCheckoutConfirmation(customer, saved);
