@@ -1,22 +1,13 @@
 /**
- * Builds request headers for manager-only theater API calls.
+ * Builds request headers for theater API calls.
  *
- * Reads `tf_token` and `tf_rawKey` from localStorage and, when both are
- * present, appends `Authorization: Bearer <token>` and
- * `X-Session-Key: <rawKey>`. If either value is missing the headers are
- * returned without auth, which will result in a 401 from the server.
+ * Auth is handled automatically via the `tf_token` and `tf_key` session
+ * cookies set at login; no manual header injection is needed.
  *
  * @returns A headers object suitable for passing to `fetch`.
  */
 function theaterAuthHeaders(): Record<string, string> {
-    const token = localStorage.getItem('tf_token');
-    const rawKey = localStorage.getItem('tf_rawKey');
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token && rawKey) {
-        headers['Authorization'] = `Bearer ${token}`;
-        headers['X-Session-Key'] = rawKey;
-    }
-    return headers;
+    return { 'Content-Type': 'application/json' };
 }
 
 /**

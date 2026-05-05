@@ -27,10 +27,11 @@ public class CheckoutController
     /**
      * Creates a checkout for the authenticated customer.
      *
-     * @param request incoming checkout payload
-     * @param authHeader Authorization header in the format {@code Bearer <token>}
+     * @param request    incoming checkout payload
+     * @param token      {@code tf_token} cookie
+     * @param sessionKey {@code tf_key} cookie
      * @return {@code 201 Created} with checkout data, or {@code 401 Unauthorized}
-     *         when the token is missing/invalid
+     *         when the session cookies are missing or invalid
      */
     @PostMapping
     public ResponseEntity<CheckoutResponse> checkout(
