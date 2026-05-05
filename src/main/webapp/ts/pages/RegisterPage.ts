@@ -9,7 +9,7 @@ export class RegisterPage extends BasePage {
     this.root.innerHTML = `
       <div class="auth-page">
         <header class="auth-header">
-          <a class="auth-header__logo" href="/home.html">TicketFlix</a>
+          <a class="auth-header__logo" href="/index.html">TicketFlix</a>
         </header>
         <main class="auth-center">
           <div class="auth-card">

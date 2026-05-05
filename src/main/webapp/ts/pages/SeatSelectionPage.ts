@@ -14,7 +14,7 @@ export class SeatSelectionPage extends BasePage {
 
   render(): void {
     const pending = this.bookingService.getPending();
-    if (!pending) { Router.navigateTo('/home.html'); return; }
+    if (!pending) { Router.navigateTo('/index.html'); return; }
 
     const page = this.scaffold('seat-page');
 
@@ -87,7 +87,7 @@ export class SeatSelectionPage extends BasePage {
 
       this.bookingService.clearPending();
       alert(`Booking confirmed!\nSeats: ${this.selected.map(s => s.label).join(', ')}\nTotal: $${(this.selected.length * pricePerSeat).toFixed(2)}`);
-      Router.navigateTo('/home.html');
+      Router.navigateTo('/index.html');
     });
   }
 }

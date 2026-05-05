@@ -19,7 +19,7 @@ public class Checkout
     /** Unique identifier for checkout transaction. */
     @Id
     @Column(name="CheckoutId")
-    private long checkoutId;
+    private Long checkoutId;
 
     @ManyToOne(fetch=FetchType.LAZY, optional=false)
     @JoinColumn(name="UserId", nullable = false)
@@ -27,7 +27,7 @@ public class Checkout
 
     /** Identifier of the purchased showtime. */
     @Column(name="ShowtimeId", nullable = false)
-    private long showtimeId;
+    private Long showtimeId;
 
     /** A list of seat labels associated with the checkout transaction.*/
     @ElementCollection
@@ -64,7 +64,7 @@ public class Checkout
      * @param status initial checkout status
      * @param createdAt checkout creation timestamp
      */
-    public Checkout(long checkoutId, User user, long showtimeId, List<String> seatLabels, BigDecimal total, String status, LocalDateTime createdAt)
+    public Checkout(Long checkoutId, User user, Long showtimeId, List<String> seatLabels, BigDecimal total, String status, LocalDateTime createdAt)
     {
         this.checkoutId = checkoutId;
         this.user = user;
@@ -76,10 +76,10 @@ public class Checkout
     }
 
     /** @return checkout id.*/
-    public long getCheckoutId() {return checkoutId;}
+    public Long getCheckoutId() {return checkoutId;}
 
     /** @param checkoutId Checkout Id to be set.*/
-    public void setCheckoutId(long checkoutId) {this.checkoutId = checkoutId;}
+    public void setCheckoutId(Long checkoutId) {this.checkoutId = checkoutId;}
 
     /** @return  Total amount. */
     public BigDecimal getTotal() {return total;}
@@ -94,10 +94,10 @@ public class Checkout
     public void setSeatLabels(List<String> seatLabels) {this.seatLabels = seatLabels;}
 
     /** @return showtime Id.*/
-    public long getShowtimeId() {return showtimeId;}
+    public Long getShowtimeId() {return showtimeId;}
 
     /** @param showtimeId showtime Id to be set. */
-    public void setShowtimeId(long showtimeId) {this.showtimeId = showtimeId;}
+    public void setShowtimeId(Long showtimeId) {this.showtimeId = showtimeId;}
 
     /** @return checkout status. */
     public String getStatus() {return status;}

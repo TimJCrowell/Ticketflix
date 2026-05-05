@@ -40,7 +40,7 @@ public class CheckoutResponse
      * @param status Checkout status.
      * @param createdAt Creation timestamp.
      */
-    public CheckoutResponse(long checkoutId, long userId, long showtimeId, List<String> seatLabels, BigDecimal total, String status, LocalDateTime createdAt)
+    public CheckoutResponse(Long checkoutId, Long userId, Long showtimeId, List<String> seatLabels, BigDecimal total, String status, LocalDateTime createdAt)
     {
         this.checkoutId = Long.toUnsignedString(checkoutId);
         this.userId = Long.toUnsignedString(userId);

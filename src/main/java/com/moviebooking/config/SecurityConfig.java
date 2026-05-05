@@ -48,6 +48,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/checkout/**").permitAll()
                 .requestMatchers("/api/theaters/**").permitAll()
+                .requestMatchers("/api/movies/**").permitAll()
+                .requestMatchers("/api/showtimes/**").permitAll()
                 .anyRequest().authenticated()
             );
 

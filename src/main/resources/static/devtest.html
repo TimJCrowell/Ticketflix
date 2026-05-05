@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="refresh" content="0; url=/index.html"> -->
+    <title>TicketFlix</title>
+</head>
+<body>
+
+<nav>
+    <button id="nav-register">Register</button>
+    <button id="nav-login">Login</button>
+</nav>
+
+<p id="status"></p>
+
+<!-- Register -->
+<section id="section-register">
+    <h2>Create Account</h2>
+    <form id="form-register">
+        <div><label>First name<br><input name="firstName" type="text" required></label></div>
+        <div><label>Last name<br><input name="lastName" type="text" required></label></div>
+        <div><label>Email<br><input name="email" type="email" required></label></div>
+        <div><label>Password<br><input name="password" type="password" required></label></div>
+        <div><label>Date of birth<br><input name="dateOfBirth" type="date" required></label></div>
+        <div>
+            <label>[DEV] Role<br>
+                <select name="role" id="register-role">
+                    <option value="CUSTOMER">CUSTOMER</option>
+                    <option value="MANAGER">MANAGER</option>
+                </select>
+            </label>
+        </div>
+
+        <button type="submit">Create account</button>
+    </form>
+</section>
+
+<!-- Login step 1: email -->
+<section id="section-login-email">
+    <h2>Login — Step 1: Email</h2>
+    <form id="form-login-email">
+        <div><label>Email<br><input name="email" type="email" required></label></div>
+        <button type="submit">Continue</button>
+    </form>
+</section>
+
+<!-- Login step 2: role (only shown when multiple roles exist for this email) -->
+<section id="section-login-role">
+    <h2>Login — Step 2: Select Role</h2>
+    <form id="form-login-role">
+        <div id="role-options"></div>
+        <button type="submit">Continue</button>
+    </form>
+</section>
+
+<!-- Login step 3: password -->
+<section id="section-login-password">
+    <h2>Login — Step 3: Password</h2>
+    <form id="form-login-password">
+        <div><label>Password<br><input name="password" type="password" required></label></div>
+        <button type="submit">Login</button>
+    </form>
+</section>
+
+<!-- Success -->
+<section id="section-success">
+    <h2>Logged in</h2>
+    <p>Token: <code id="result-token"></code></p>
+    <p>Raw key: <code id="result-rawkey"></code></p>
+    <p>Expires: <span id="result-expires"></span></p>
+    <button id="btn-logout">Logout (clear session)</button>
+</section>
+
+<!-- Stored session readout -->
+<div id="session-box" style="display:none">
+    <h3>Stored session (localStorage)</h3>
+    <p>Token: <code id="stored-token"></code></p>
+    <p>Raw key: <code id="stored-rawkey"></code></p>
+    <p>Expires: <span id="stored-expires"></span></p>
+</div>
+
+<!-- Theater / Room testing -->
+<hr>
+<h2>Theaters</h2>
+
+<div id="section-theater-list">
+    <h3>List all theaters</h3>
+    <button id="btn-list-theaters">GET /api/theaters</button>
+</div>
+
+<div id="section-theater-get">
+    <h3>Get theater by ID</h3>
+    <form id="form-get-theater">
+        <div><label>Theater ID<br><input name="theaterId" type="text" required></label></div>
+        <button type="submit">GET</button>
+    </form>
+</div>
+
+<div id="section-theater-create">
+    <h3>Create theater <small>(manager)</small></h3>
+    <form id="form-create-theater">
+        <div><label>Name<br><input name="name" type="text" required></label></div>
+        <button type="submit">POST /api/theaters</button>
+    </form>
+</div>
+
+<div id="section-theater-delete">
+    <h3>Delete theater <small>(manager)</small></h3>
+    <form id="form-delete-theater">
+        <div><label>Theater ID<br><input name="theaterId" type="text" required></label></div>
+        <button type="submit">DELETE /api/theaters/{id}</button>
+    </form>
+</div>
+
+<div id="section-room-add">
+    <h3>Add room <small>(manager)</small></h3>
+    <form id="form-add-room">
+        <div><label>Theater ID<br><input name="theaterId" type="text" required></label></div>
+        <div><label>Room number<br><input name="roomNumber" type="number" min="1" required></label></div>
+        <button type="submit">POST /api/theaters/{id}/rooms (default seatmap)</button>
+    </form>
+</div>
+
+<div id="section-room-remove">
+    <h3>Remove room <small>(manager)</small></h3>
+    <form id="form-remove-room">
+        <div><label>Theater ID<br><input name="theaterId" type="text" required></label></div>
+        <div><label>Room ID<br><input name="roomId" type="text" required></label></div>
+        <button type="submit">DELETE /api/theaters/{id}/rooms/{roomId}</button>
+    </form>
+</div>
+
+<h3>Result</h3>
+<pre id="theater-output"></pre>
+
+<script src="/js/dev_auth.js"></script>
+<script src="/js/dev_theater.js"></script>
+</body>
+</html>
