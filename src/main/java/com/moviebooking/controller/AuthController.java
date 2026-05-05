@@ -2,17 +2,20 @@ package com.moviebooking.controller;
 
 import com.moviebooking.dto.EmailLookupRequest;
 import com.moviebooking.dto.LoginRequest;
-import com.moviebooking.dto.LoginResponse;
 import com.moviebooking.dto.RegisterRequest;
 import com.moviebooking.entity.Login;
 import com.moviebooking.entity.User;
 import com.moviebooking.exception.BadRequestException;
 import com.moviebooking.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -56,16 +59,40 @@ public class AuthController {
     /**
      * Step 2 of login: verifies credentials and issues a session token.
      *
+     * <p>Sets two {@code SameSite=Strict} cookies: {@code tf_token} (readable by JS)
+     * and {@code tf_key} (HttpOnly). Both have a 24-hour Max-Age matching the
+     * server-side session TTL.</p>
+     *
      * @param request request body containing email, role, and password
-     * @return {@code 200 OK} with a {@link com.moviebooking.dto.LoginResponse}
-     *         (token + expiry), or {@code 401 Unauthorized} on bad credentials
+     * @return {@code 200 OK} with session cookies set, or {@code 401 Unauthorized}
+     *         on bad credentials
      */
     @PostMapping("/login/password")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             Login login = authService.loginAndGenerateToken(
                     request.getEmail(), request.getRole(), request.getPassword());
-            return ResponseEntity.ok(new LoginResponse(login.getLoginToken(), login.getExpiresAt()));
+            // Session tokens expire after 24 hours on the server (see AuthService.TOKEN_EXPIRY_HOURS).
+            // TODO: enable .secure(true) in production (requires HTTPS).
+            Duration ttl = Duration.ofHours(24);
+            ResponseCookie tokenCookie = ResponseCookie.from("tf_token", Long.toUnsignedString(login.getLoginToken()))
+                    .httpOnly(false)
+                    .secure(false)
+                    .sameSite("Strict")
+                    .path("/")
+                    .maxAge(ttl)
+                    .build();
+            ResponseCookie keyCookie = ResponseCookie.from("tf_key", Base64.getEncoder().encodeToString(login.getRawKey()))
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Strict")
+                    .path("/")
+                    .maxAge(ttl)
+                    .build();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, tokenCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, keyCookie.toString())
+                    .build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
@@ -88,6 +115,47 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
+    /**
+     * Invalidates a session by deleting its token from the database, then
+     * clears the session cookies.
+     *
+     * @param token  value of the {@code tf_token} cookie
+     * @param rawKey value of the {@code tf_key} cookie
+     * @return {@code 200 OK} with cleared cookies on success; {@code 400 Bad Request}
+     *         if the token is missing, expired, or the key does not match
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String rawKey) {
+        try {
+            if (token == null || rawKey == null) {
+                throw new BadRequestException("No active session.");
+            }
+            authService.logout(token, rawKey);
+            // TODO: enable .secure(true) in production (requires HTTPS).
+            ResponseCookie clearToken = ResponseCookie.from("tf_token", "")
+                    .httpOnly(false)
+                    .secure(false)
+                    .sameSite("Strict")
+                    .path("/")
+                    .maxAge(0)
+                    .build();
+            ResponseCookie clearKey = ResponseCookie.from("tf_key", "")
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Strict")
+                    .path("/")
+                    .maxAge(0)
+                    .build();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, clearToken.toString())
+                    .header(HttpHeaders.SET_COOKIE, clearKey.toString())
+                    .body("Logged out successfully.");
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

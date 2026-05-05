@@ -2,6 +2,16 @@ package com.moviebooking.service;
 
 import com.moviebooking.dto.RegisterRequest;
 import com.moviebooking.exception.BadRequestException;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.List;
 import com.moviebooking.entity.Customer;
 import com.moviebooking.entity.Login;
@@ -25,6 +35,8 @@ import java.time.LocalDateTime;
  */
 @Service
 public class AuthService {
+
+    private static final SecureRandom secureRandom = new SecureRandom();
 
     private static final long TOKEN_EXPIRY_HOURS = 24;
 
@@ -75,23 +87,31 @@ public class AuthService {
         }
 
         Long token = idGenerator.nextId();
+        byte[] tokenBytes = ByteBuffer.allocate(Long.BYTES).putLong(token).array();
+        byte[] key = new byte[32];
+        secureRandom.nextBytes(key);
+        byte[] tokenHmac = computeHmac(key, tokenBytes);
+
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(TOKEN_EXPIRY_HOURS);
-        return loginRepository.save(new Login(token, user, expiresAt));
+        Login saved = loginRepository.save(new Login(token, tokenHmac, user, expiresAt));
+        saved.setRawKey(key);
+        return saved;
     }
 
     /**
-     * Resolves a session token string to its owning {@link User}.
+     * Resolves a session token to its owning {@link User} after verifying the HMAC key.
      *
-     * <p>The token is expected to be the unsigned decimal representation of a
-     * Snowflake {@code Long} (as returned by {@link com.moviebooking.dto.LoginResponse}).
-     * Currently unused; will be wired in when protected endpoints are added.</p>
+     * <p>The caller must supply both the token (unsigned decimal Snowflake string) and
+     * the raw 32-byte key (Base64-encoded) that was returned at login. The stored HMAC
+     * is recomputed from the supplied key and compared in constant time; a mismatch is
+     * treated identically to a missing token to prevent oracle attacks.</p>
      *
-     * @param strToken unsigned decimal string representation of the session token
+     * @param strToken   unsigned decimal string representation of the session token
+     * @param base64Key  Base64-encoded raw HMAC key as issued at login
      * @return the {@link User} associated with the token
-     * @throws RuntimeException if the token string is not a valid unsigned long,
-     *                          the token does not exist, or the session has expired
+     * @throws RuntimeException if the token is invalid, expired, or the key does not match
      */
-    public User validateToken(String strToken) {
+    public User validateToken(String strToken, String base64Key) {
         long tokenId;
         try {
             tokenId = Long.parseUnsignedLong(strToken);
@@ -106,7 +126,48 @@ public class AuthService {
             throw new RuntimeException("Token expired");
         }
 
+        byte[] key;
+        try {
+            key = Base64.getDecoder().decode(base64Key);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid token");
+        }
+
+        byte[] tokenBytes = ByteBuffer.allocate(Long.BYTES).putLong(tokenId).array();
+        byte[] expectedHmac = computeHmac(key, tokenBytes);
+        if (!MessageDigest.isEqual(expectedHmac, login.getTokenHmac())) {
+            throw new RuntimeException("Invalid token");
+        }
+
         return login.getUser();
+    }
+
+    /**
+     * Validates the session and permanently deletes the token from the database.
+     *
+     * @param strToken  unsigned decimal string representation of the session token
+     * @param base64Key Base64-encoded raw HMAC key as issued at login
+     * @throws BadRequestException if the token is missing, expired, or the key does not match
+     */
+    public void logout(String strToken, String base64Key) {
+        try {
+            validateToken(strToken, base64Key);
+        } catch (RuntimeException e) {
+            throw new BadRequestException("Invalid or expired session token.");
+        }
+        loginRepository.deleteById(Long.parseUnsignedLong(strToken));
+    }
+
+    private byte[] computeHmac(byte[] key, byte[] data) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA512/256", "BC");
+            mac.init(new SecretKeySpec(key, "HmacSHA512/256"));
+            return mac.doFinal(data);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new RuntimeException("CRITICAL: BouncyCastle HmacSHA512/256 is unavailable.", e);
+        } catch (InvalidKeyException e) {
+            throw new AssertionError("Impossible error: HMAC key rejected", e);
+        }
     }
 
     /**
