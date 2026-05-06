@@ -205,6 +205,10 @@ export default function ManagerDashboard() {
   const [posterFile, setPosterFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Change-password form state
+  const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
+  const [pwMessage, setPwMessage] = useState<{ text: string; ok: boolean } | null>(null);
+
   // Auth guard: redirect if not logged in as manager
   useEffect(() => {
     const hasToken = document.cookie.split(';').some(c => c.trim().startsWith('tf_token='));
@@ -457,6 +461,35 @@ export default function ManagerDashboard() {
       alert('Failed to add room.');
     }
     setIsAddRoomModalOpen(false);
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPwMessage(null);
+    if (pwForm.newPw !== pwForm.confirm) {
+      setPwMessage({ text: 'New passwords do not match.', ok: false });
+      return;
+    }
+    if (!pwForm.newPw) {
+      setPwMessage({ text: 'New password must not be empty.', ok: false });
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: pwForm.current, newPassword: pwForm.newPw }),
+      });
+      const text = await res.text();
+      if (res.ok) {
+        setPwForm({ current: '', newPw: '', confirm: '' });
+        setPwMessage({ text: 'Password changed successfully.', ok: true });
+      } else {
+        setPwMessage({ text: text || 'Failed to change password.', ok: false });
+      }
+    } catch {
+      setPwMessage({ text: 'Could not reach the server.', ok: false });
+    }
   }
 
   return (
@@ -903,7 +936,7 @@ export default function ManagerDashboard() {
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Account Settings</h2>
 
               <div className="bg-white border border-gray-300 shadow-sm p-6">
-                <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert("Saved successfully!"); }}>
+                <form className="space-y-5" onSubmit={handleChangePassword}>
 
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">Email Address</label>
@@ -924,6 +957,8 @@ export default function ManagerDashboard() {
                     <input
                       type="password"
                       placeholder="••••••••"
+                      value={pwForm.current}
+                      onChange={e => setPwForm(prev => ({ ...prev, current: e.target.value }))}
                       className="w-full border border-gray-300 p-2 text-sm focus:outline-none focus:border-[#8b5cf6] transition-colors"
                     />
                   </div>
@@ -934,6 +969,8 @@ export default function ManagerDashboard() {
                       <input
                         type="password"
                         placeholder="Enter new password"
+                        value={pwForm.newPw}
+                        onChange={e => setPwForm(prev => ({ ...prev, newPw: e.target.value }))}
                         className="w-full border border-gray-300 p-2 text-sm focus:outline-none focus:border-[#8b5cf6] transition-colors"
                       />
                     </div>
@@ -942,10 +979,18 @@ export default function ManagerDashboard() {
                       <input
                         type="password"
                         placeholder="Confirm new password"
+                        value={pwForm.confirm}
+                        onChange={e => setPwForm(prev => ({ ...prev, confirm: e.target.value }))}
                         className="w-full border border-gray-300 p-2 text-sm focus:outline-none focus:border-[#8b5cf6] transition-colors"
                       />
                     </div>
                   </div>
+
+                  {pwMessage && (
+                    <p className={`text-sm font-medium ${pwMessage.ok ? 'text-green-600' : 'text-red-600'}`}>
+                      {pwMessage.text}
+                    </p>
+                  )}
 
                   <div className="pt-4 flex justify-end">
                     <button

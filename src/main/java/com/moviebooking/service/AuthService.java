@@ -143,6 +143,26 @@ public class AuthService {
     }
 
     /**
+     * Changes the password for the session's owner after verifying the current password.
+     *
+     * @param strToken       unsigned decimal string representation of the session token
+     * @param base64Key      Base64-encoded raw HMAC key as issued at login
+     * @param currentPassword the plain-text password to verify against the stored hash
+     * @param newPassword     the plain-text replacement password to hash and store
+     * @throws RuntimeException    if the token is invalid or expired
+     * @throws BadRequestException if {@code currentPassword} does not match
+     */
+    public void changePassword(String strToken, String base64Key,
+                               String currentPassword, String newPassword) {
+        User user = validateToken(strToken, base64Key);
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new BadRequestException("Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    /**
      * Validates the session and permanently deletes the token from the database.
      *
      * @param strToken  unsigned decimal string representation of the session token
