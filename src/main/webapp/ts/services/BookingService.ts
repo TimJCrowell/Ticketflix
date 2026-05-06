@@ -1,5 +1,4 @@
 import { Seat } from '../models/Seat.js';
-import { Showtime } from '../models/Showtime.js';
 
 export interface PendingBookingData {
   showtimeId: string;
@@ -55,9 +54,30 @@ export class BookingService {
     sessionStorage.removeItem(BookingService.PENDING_KEY);
   }
 
-  async confirmBooking(_showtime: Showtime, _seats: Seat[]): Promise<{ ok: boolean }> {
-    // Stub — wire to your backend here
-    await new Promise(resolve => setTimeout(resolve, 600));
-    return { ok: true };
+  async confirmBooking(
+    showtimeId: string,
+    seats: Seat[],
+    cardNumber: string,
+  ): Promise<{ ok: boolean; message: string; checkoutId?: string }> {
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          showtimeId,
+          seatLabels: seats.map(s => s.label),
+          cardNumber,
+        }),
+      });
+      if (res.status === 401) return { ok: false, message: 'You must be logged in to book tickets.' };
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { message?: string } | null;
+        return { ok: false, message: body?.message ?? 'Booking failed. Please try again.' };
+      }
+      const data = await res.json() as { checkoutId: string };
+      return { ok: true, message: '', checkoutId: data.checkoutId };
+    } catch {
+      return { ok: false, message: 'Could not reach the server. Please try again.' };
+    }
   }
 }

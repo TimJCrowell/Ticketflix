@@ -72,12 +72,19 @@ public class CheckoutService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required");
         }//end if
 
-        if (request.getShowtimeId() == null)
+        if (request.getShowtimeId() == null || request.getShowtimeId().isBlank())
         {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Showtime ID is required");
         }//end if
 
-        Showtime showtime = showtimeRepository.findById(request.getShowtimeId())
+        Long showtimeId;
+        try {
+            showtimeId = Long.parseUnsignedLong(request.getShowtimeId());
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid showtime ID");
+        }
+
+        Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Showtime not found: " + request.getShowtimeId()));
         if (!showtime.getDatetime().isAfter(LocalDateTime.now()))
         {
@@ -133,7 +140,7 @@ public class CheckoutService
         Checkout checkout = new Checkout();
         checkout.setCheckoutId(idGenerator.nextId());
         checkout.setUser(customer);
-        checkout.setShowtimeId(request.getShowtimeId());
+        checkout.setShowtimeId(showtimeId);
         checkout.setSeatLabels(seats);
         checkout.setTotal(total);
         checkout.setStatus(STATUS_PENDING);
