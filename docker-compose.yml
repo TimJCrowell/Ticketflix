@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/workspace:cached
-      - ./.m2-cache:/home/ubuntu/.m2
+      - m2-cache:/home/ubuntu/.m2
     command: sleep infinity
     depends_on:
       - db
@@ -33,4 +33,5 @@ services:
 
 volumes:
   postgres-data:
+  m2-cache:
 
