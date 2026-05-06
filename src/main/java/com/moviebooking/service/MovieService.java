@@ -59,18 +59,16 @@ public class MovieService {
     /**
      * Creates a new movie.
      *
-     * @param name             movie title, must not be blank
-     * @param runtime          runtime in minutes, must be positive
-     * @param shortDescription brief synopsis (may be {@code null})
-     * @param longDescription  full synopsis (may be {@code null})
-     * @param posterImage      URL or path to poster image (may be {@code null})
+     * @param name        movie title, must not be blank
+     * @param runtime     runtime in minutes, must be positive
+     * @param description synopsis (may be {@code null})
+     * @param posterImage URL or path to poster image (may be {@code null})
      * @return the persisted {@link Movie}
      * @throws BadRequestException if {@code name} is blank or {@code runtime} is not positive
      * @throws RuntimeException    if a movie with that title already exists
      */
-    public Movie createMovie(String name, int runtime, String shortDescription,
-                             String longDescription, String posterImage,
-                             String rating, String genre) {
+    public Movie createMovie(String name, int runtime, String description,
+                             String posterImage, String rating, String genre) {
         if (name == null || name.isBlank()) {
             throw new BadRequestException("Movie name must not be blank");
         }
@@ -84,8 +82,7 @@ public class MovieService {
         movie.setId(idGenerator.nextId());
         movie.setName(name);
         movie.setRuntime(runtime);
-        movie.setShortDescription(shortDescription);
-        movie.setLongDescription(longDescription);
+        movie.setDescription(description);
         movie.setPosterImage(posterImage);
         movie.setRating(rating);
         movie.setGenre(genre);
@@ -95,20 +92,18 @@ public class MovieService {
     /**
      * Updates an existing movie's fields.
      *
-     * @param id               the movie's Snowflake ID
-     * @param name             new title, must not be blank
-     * @param runtime          new runtime in minutes, must be positive
-     * @param shortDescription new brief synopsis (may be {@code null})
-     * @param longDescription  new full synopsis (may be {@code null})
-     * @param posterImage      new poster URL or path (may be {@code null})
+     * @param id          the movie's Snowflake ID
+     * @param name        new title, must not be blank
+     * @param runtime     new runtime in minutes, must be positive
+     * @param description new synopsis (may be {@code null})
+     * @param posterImage new poster URL or path (may be {@code null})
      * @return the updated {@link Movie}
      * @throws NotFoundException   if no movie exists with the given ID
      * @throws BadRequestException if {@code name} is blank or {@code runtime} is not positive
      * @throws RuntimeException    if the new title is already taken by a different movie
      */
-    public Movie updateMovie(Long id, String name, int runtime, String shortDescription,
-                             String longDescription, String posterImage,
-                             String rating, String genre) {
+    public Movie updateMovie(Long id, String name, int runtime, String description,
+                             String posterImage, String rating, String genre) {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Movie not found: " + id));
         if (name == null || name.isBlank()) {
@@ -122,8 +117,7 @@ public class MovieService {
         }
         movie.setName(name);
         movie.setRuntime(runtime);
-        movie.setShortDescription(shortDescription);
-        movie.setLongDescription(longDescription);
+        movie.setDescription(description);
         movie.setPosterImage(posterImage);
         movie.setRating(rating);
         movie.setGenre(genre);
@@ -156,6 +150,13 @@ public class MovieService {
         Path dir = Paths.get(uploadDir);
         Files.createDirectories(dir);
         file.transferTo(dir.resolve(filename));
+
+        Path targetDir = Paths.get("target/classes/static/img/posters");
+        if (!targetDir.equals(dir)) {
+            Files.createDirectories(targetDir);
+            Files.copy(dir.resolve(filename), targetDir.resolve(filename),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
 
         movie.setPosterImage("/img/posters/" + filename);
         return movieRepository.save(movie);

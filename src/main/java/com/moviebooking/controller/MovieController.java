@@ -76,7 +76,7 @@ public class MovieController {
         try {
             Movie movie = movieService.createMovie(
                     request.getName(), request.getRuntime(),
-                    request.getShortDescription(), request.getLongDescription(),
+                    request.getDescription(),
                     request.getPosterImage(), request.getRating(), request.getGenre());
             return ResponseEntity.status(HttpStatus.CREATED).body(movie);
         } catch (BadRequestException e) {
@@ -105,7 +105,7 @@ public class MovieController {
         try {
             Movie movie = movieService.updateMovie(
                     id, request.getName(), request.getRuntime(),
-                    request.getShortDescription(), request.getLongDescription(),
+                    request.getDescription(),
                     request.getPosterImage(), request.getRating(), request.getGenre());
             return ResponseEntity.ok(movie);
         } catch (NotFoundException e) {

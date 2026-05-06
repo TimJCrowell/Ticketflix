@@ -7,8 +7,7 @@ public class MovieRequest {
 
     private String name;
     private int runtime;
-    private String shortDescription;
-    private String longDescription;
+    private String description;
     private String posterImage;
     private String rating;
     private String genre;
@@ -19,11 +18,8 @@ public class MovieRequest {
     public int getRuntime() { return runtime; }
     public void setRuntime(int runtime) { this.runtime = runtime; }
 
-    public String getShortDescription() { return shortDescription; }
-    public void setShortDescription(String shortDescription) { this.shortDescription = shortDescription; }
-
-    public String getLongDescription() { return longDescription; }
-    public void setLongDescription(String longDescription) { this.longDescription = longDescription; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
     public String getPosterImage() { return posterImage; }
     public void setPosterImage(String posterImage) { this.posterImage = posterImage; }

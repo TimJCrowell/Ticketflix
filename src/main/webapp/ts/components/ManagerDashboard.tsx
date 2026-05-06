@@ -50,10 +50,11 @@ export interface TheaterScreen {
 
 export interface Order {
   id: string;
-  customerEmail: string;
-  movieTitle: string;
+  userId: string;
+  showtimeId: string;
   checkoutDate: string;
   tickets: number;
+  seatLabels: string[];
   total: string;
   status: string;
 }
@@ -64,8 +65,7 @@ interface ApiMovie {
   id: string;
   name: string;
   runtime: number;
-  shortDescription: string;
-  longDescription: string;
+  description: string;
   posterImage: string;
   rating: string;
   genre: string;
@@ -105,7 +105,7 @@ function apiMovieToMovie(m: ApiMovie): Movie {
   return {
     id: m.id,
     title: m.name ?? '',
-    description: m.shortDescription ?? '',
+    description: m.description ?? '',
     durationHrs: String(Math.floor((m.runtime ?? 0) / 60)),
     durationMins: String((m.runtime ?? 0) % 60),
     rating: m.rating ?? '',
@@ -127,10 +127,11 @@ function apiCheckoutToOrder(c: ApiCheckout): Order {
   };
   return {
     id: c.checkoutId,
-    customerEmail: c.userId,
-    movieTitle: c.showtimeId,
+    userId: c.userId,
+    showtimeId: c.showtimeId,
     checkoutDate: date,
     tickets: c.seatLabels?.length ?? 0,
+    seatLabels: c.seatLabels ?? [],
     total: c.total != null ? String(c.total) : '0.00',
     status: statusMap[c.status?.toUpperCase()] ?? c.status ?? 'Pending',
   };
@@ -200,6 +201,10 @@ export default function ManagerDashboard() {
   const [editingShowtimeId, setEditingShowtimeId] = useState<string | null>(null);
   const [showtimeForm, setShowtimeForm] = useState({ movieId: '', roomId: '', datetime: '' });
 
+  // Poster upload state
+  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Auth guard: redirect if not logged in as manager
   useEffect(() => {
     const hasToken = document.cookie.split(';').some(c => c.trim().startsWith('tf_token='));
@@ -265,12 +270,14 @@ export default function ManagerDashboard() {
   function openCreateModal() {
     setForm(EMPTY_MOVIE_FORM);
     setEditingId(null);
+    setPosterFile(null);
     setIsModalOpen(true);
   }
 
   function openEditModal(movie: Movie) {
     setForm({ ...movie });
     setEditingId(movie.id);
+    setPosterFile(null);
     setIsModalOpen(true);
   }
 
@@ -283,37 +290,49 @@ export default function ManagerDashboard() {
     const body = {
       name: form.title,
       runtime: (parseInt(form.durationHrs || '0', 10) * 60) + parseInt(form.durationMins || '0', 10),
-      shortDescription: form.description,
-      longDescription: form.description,
-      posterImage: form.imageUrl,
+      description: form.description,
+      posterImage: form.imageUrl || null,
       rating: form.rating,
       genre: form.genre,
     };
-    if (editingId !== null) {
+
+    let savedMovie: ApiMovie | null = null;
+    const isEdit = editingId !== null;
+
+    if (isEdit) {
       const res = await fetch(`/api/movies/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (res.ok) {
-        const updated: ApiMovie = await res.json();
-        setMovies(prev => prev.map(m => m.id === editingId ? apiMovieToMovie(updated) : m));
-      } else {
-        alert('Failed to update movie.');
-      }
+      if (res.ok) { savedMovie = await res.json() as ApiMovie; }
+      else { alert('Failed to update movie.'); return; }
     } else {
       const res = await fetch('/api/movies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (res.ok) {
-        const created: ApiMovie = await res.json();
-        setMovies(prev => [...prev, apiMovieToMovie(created)]);
+      if (res.ok) { savedMovie = await res.json() as ApiMovie; }
+      else { alert('Failed to create movie.'); return; }
+    }
+
+    if (savedMovie && posterFile) {
+      const fd = new FormData();
+      fd.append('file', posterFile);
+      const uploadRes = await fetch(`/api/movies/${savedMovie.id}/poster`, { method: 'POST', body: fd });
+      if (uploadRes.ok) { savedMovie = await uploadRes.json() as ApiMovie; }
+    }
+
+    if (savedMovie) {
+      if (isEdit) {
+        setMovies(prev => prev.map(m => m.id === editingId ? apiMovieToMovie(savedMovie!) : m));
       } else {
-        alert('Failed to create movie.');
+        setMovies(prev => [...prev, apiMovieToMovie(savedMovie!)]);
       }
     }
+
+    setPosterFile(null);
     setIsModalOpen(false);
   }
 
@@ -410,6 +429,18 @@ export default function ManagerDashboard() {
       } else alert('Failed to create showtime.');
     }
     setIsShowtimeModalOpen(false);
+  }
+
+  async function handleDeleteRoom(theaterId: string, roomId: string) {
+    if (!confirm("Delete this room?")) return;
+    const res = await fetch(`/api/theaters/${theaterId}/rooms/${roomId}`, { method: 'DELETE' });
+    if (res.ok) {
+      setTheaterData(prev => prev.map(t =>
+        t.id === theaterId ? { ...t, rooms: (t.rooms ?? []).filter(r => r.id !== roomId) } : t
+      ));
+    } else {
+      alert('Failed to delete room.');
+    }
   }
 
   async function handleAddRoomSubmit(e: React.FormEvent) {
@@ -514,25 +545,18 @@ export default function ManagerDashboard() {
               </div>
 
               <div className="border border-gray-300 bg-white overflow-x-auto">
-                <table className="w-full min-w-[800px] text-left border-collapse text-sm">
+                <table className="w-full min-w-[500px] text-left border-collapse text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-300">
-                      <th className="p-3 border-r border-gray-300 w-12 text-center font-medium">#</th>
                       <th className="p-3 border-r border-gray-300 w-24 font-medium">Cover</th>
                       <th className="p-3 border-r border-gray-300 font-medium">Title</th>
-                      <th className="p-3 border-r border-gray-300 font-medium w-32">Status</th>
                       <th className="p-3 font-medium text-center w-40">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {movies.map((movie, index) => {
-                      // Passing new Date() as the reference date for the real application
-                      const dynamicStatus = getDynamicStatus(movie.showingSchedule, movie.endDate, new Date());
-                      const isStatusActive = dynamicStatus === "Active";
-
+                    {movies.map((movie) => {
                       return (
                         <tr key={movie.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                          <td className="p-3 border-r border-gray-300 text-center">{index + 1}</td>
                           <td className="p-3 border-r border-gray-300">
                             <img
                               src={movie.imageUrl || "https://via.placeholder.com/150x200?text=No+Cover"}
@@ -541,15 +565,6 @@ export default function ManagerDashboard() {
                             />
                           </td>
                           <td className="p-3 border-r border-gray-300 font-medium">{movie.title}</td>
-                          <td className="p-3 border-r border-gray-300">
-                            <span
-                              className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${
-                                isStatusActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                              }`}
-                            >
-                              {dynamicStatus}
-                            </span>
-                          </td>
                           <td className="p-3">
                             <div className="flex items-center justify-center gap-2">
                               <button
@@ -594,13 +609,10 @@ export default function ManagerDashboard() {
               </div>
 
               <div className="border border-gray-300 bg-white overflow-x-auto">
-                <table className="w-full min-w-[800px] text-left border-collapse text-sm">
+                <table className="w-full min-w-[400px] text-left border-collapse text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-300">
-                      <th className="p-3 border-r border-gray-300 font-medium">Screen Name</th>
-                      <th className="p-3 border-r border-gray-300 font-medium">Location</th>
-                      <th className="p-3 border-r border-gray-300 font-medium w-32 text-center">Capacity</th>
-                      <th className="p-3 border-r border-gray-300 font-medium w-32">Status</th>
+                      <th className="p-3 border-r border-gray-300 font-medium">Theater Name</th>
                       <th className="p-3 font-medium text-center w-40">Action</th>
                     </tr>
                   </thead>
@@ -608,17 +620,6 @@ export default function ManagerDashboard() {
                     {screens.map((screen) => (
                       <tr key={screen.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                         <td className="p-3 border-r border-gray-300 font-bold text-gray-800">{screen.name}</td>
-                        <td className="p-3 border-r border-gray-300 text-gray-600">{screen.location}</td>
-                        <td className="p-3 border-r border-gray-300 text-center font-medium">{screen.capacity || '—'}</td>
-                        <td className="p-3 border-r border-gray-300">
-                          <span
-                            className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${
-                              screen.status === 'Open' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {screen.status}
-                          </span>
-                        </td>
                         <td className="p-3">
                           <div className="flex items-center justify-center gap-2">
                             <button
@@ -686,8 +687,16 @@ export default function ManagerDashboard() {
                                 .slice()
                                 .sort((a, b) => a.number - b.number)
                                 .map(room => (
-                                  <span key={room.id} className="inline-block text-xs px-2.5 py-1 rounded-full font-medium bg-gray-100 text-gray-700">
+                                  <span key={room.id} className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium bg-gray-100 text-gray-700">
                                     Room {room.number}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteRoom(theater.id, room.id)}
+                                      className="ml-0.5 text-gray-400 hover:text-red-500 leading-none focus:outline-none"
+                                      title="Delete room"
+                                    >
+                                      &times;
+                                    </button>
                                   </span>
                                 ))}
                             </div>
@@ -800,36 +809,37 @@ export default function ManagerDashboard() {
                     <tr className="bg-gray-50 border-b border-gray-300">
                       <th className="p-3 border-r border-gray-300 font-medium w-24">Order ID</th>
                       <th className="p-3 border-r border-gray-300 font-medium">User ID</th>
-                      <th className="p-3 border-r border-gray-300 font-medium">Showtime ID</th>
-                      <th className="p-3 border-r border-gray-300 font-medium text-center w-24">Tickets</th>
-                      <th className="p-3 border-r border-gray-300 font-medium">Total</th>
-                      <th className="p-3 font-medium w-32">Status</th>
+                      <th className="p-3 border-r border-gray-300 font-medium">Showtime</th>
+                      <th className="p-3 border-r border-gray-300 font-medium">Seats</th>
+                      <th className="p-3 border-r border-gray-300 font-medium text-center w-16">Tickets</th>
+                      <th className="p-3 font-medium">Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((order) => (
+                    {orders.map((order) => {
+                      const st = showtimes.find(s => s.id === order.showtimeId);
+                      const movie = st ? movies.find(m => m.id === st.movieId) : undefined;
+                      const theater = st ? theaterData.find(t => t.rooms && t.rooms.some(r => r.id === st.roomId)) : undefined;
+                      const room = theater?.rooms?.find(r => r.id === st?.roomId);
+                      const dt = st ? new Date(st.datetime) : null;
+                      const dateStr = dt ? dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : null;
+                      const timeStr = dt ? dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : null;
+                      return (
                       <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                        <td className="p-3 border-r border-gray-300 font-mono text-gray-600 text-xs">#{order.id.slice(0, 10)}</td>
-                        <td className="p-3 border-r border-gray-300 font-mono text-xs text-gray-700">{order.customerEmail.slice(0, 12)}…</td>
+                        <td className="p-3 border-r border-gray-300 font-mono text-gray-600 text-xs">#{order.id}</td>
+                        <td className="p-3 border-r border-gray-300 font-mono text-gray-600 text-xs">#{order.userId}</td>
                         <td className="p-3 border-r border-gray-300">
-                          <div className="font-mono text-xs text-gray-800">{order.movieTitle.slice(0, 12)}…</div>
-                          <div className="text-xs text-gray-500">{order.checkoutDate}</div>
+                          {movie && <div className="font-medium text-gray-800">{movie.title}</div>}
+                          {theater && <div className="text-xs text-gray-600">{theater.name}{room ? ` — Room ${room.number}` : ''}</div>}
+                          {dateStr && <div className="text-xs text-gray-500">{dateStr} {timeStr}</div>}
+                          <div className="font-mono text-xs text-gray-400">#{order.showtimeId}</div>
                         </td>
+                        <td className="p-3 border-r border-gray-300 text-xs font-mono text-gray-700">{order.seatLabels.join(', ')}</td>
                         <td className="p-3 border-r border-gray-300 text-center font-bold">{order.tickets}</td>
-                        <td className="p-3 border-r border-gray-300 font-medium">${order.total}</td>
-                        <td className="p-3">
-                          <span
-                            className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${
-                              order.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                              order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {order.status}
-                          </span>
-                        </td>
+                        <td className="p-3 font-medium">${order.total}</td>
                       </tr>
-                    ))}
+                      );
+                    })}
                     {orders.length === 0 && (
                       <tr>
                         <td colSpan={6} className="p-8 text-center text-gray-500 italic">No orders found.</td>
@@ -1046,21 +1056,24 @@ export default function ManagerDashboard() {
 
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Cover Image</label>
-                  <div className="flex text-sm">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => setPosterFile(e.target.files?.[0] ?? null)}
+                  />
+                  <div className="flex items-center gap-3 text-sm">
                     <button
                       type="button"
-                      className="bg-gray-100 border border-gray-300 px-3 py-1.5 text-gray-600 rounded-l-sm hover:bg-gray-200 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-gray-100 border border-gray-300 px-3 py-1.5 text-gray-600 rounded-sm hover:bg-gray-200 transition-colors shrink-0"
                     >
                       Upload
                     </button>
-                    <input
-                      type="text"
-                      name="imageUrl"
-                      value={form.imageUrl}
-                      onChange={handleFormChange}
-                      placeholder="Image URL (Placeholder for file)"
-                      className="flex-1 border border-l-0 border-gray-300 px-2 outline-none text-xs rounded-r-sm focus:border-blue-500"
-                    />
+                    <span className="text-xs text-gray-500 truncate">
+                      {posterFile ? posterFile.name : (form.imageUrl ? 'Current poster set' : 'No file chosen')}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1085,14 +1098,14 @@ export default function ManagerDashboard() {
         </div>
       )}
 
-      {/* --- Add/Edit Screen Modal --- */}
+      {/* --- Add/Edit Theater Modal --- */}
       {isScreenModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-[450px] shadow-2xl border border-gray-200">
 
             <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
               <h3 className="text-gray-800 font-bold">
-                {editingScreenId ? "Edit Screen" : "Add Screen"}
+                {editingScreenId ? "Edit Theater" : "Add Theater"}
               </h3>
               <button
                 onClick={() => setIsScreenModalOpen(false)}
@@ -1125,7 +1138,7 @@ export default function ManagerDashboard() {
                   type="submit"
                   className="bg-[#5b21b6] hover:bg-[#4c1d95] text-white px-6 py-1.5 text-sm font-medium rounded-sm shadow-sm transition-colors"
                 >
-                  Save Screen
+                  Save Theater
                 </button>
                 <button
                   type="button"
