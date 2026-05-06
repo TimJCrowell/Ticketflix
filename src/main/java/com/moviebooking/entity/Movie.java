@@ -1,5 +1,7 @@
 package com.moviebooking.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.persistence.*;
 
 /**
@@ -11,6 +13,7 @@ public class Movie {
 
     @Id
     @Column(name = "movie_id")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     @Column(name = "name", nullable = false)

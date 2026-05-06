@@ -2,7 +2,6 @@ export interface User {
   email: string;
   firstName: string;
   role: string;
-  token?: string;
 }
 
 export class AuthService {
@@ -48,6 +47,7 @@ export class AuthService {
       if (emailRes.status === 404) return { ok: false, message: 'No account found for that email.' };
       if (!emailRes.ok)           return { ok: false, message: 'Unexpected server error.' };
 
+      // Backend returns empty body and sets tf_token + tf_key cookies on success.
       const passRes = await fetch('/api/auth/login/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,8 +55,7 @@ export class AuthService {
       });
       if (!passRes.ok) return { ok: false, message: 'Invalid email or password.' };
 
-      const data = await passRes.json() as { token: string };
-      const user: User = { email, firstName: '', role: 'CUSTOMER', token: data.token };
+      const user: User = { email, firstName: '', role: 'CUSTOMER' };
       sessionStorage.setItem(AuthService.STORAGE_KEY, JSON.stringify(user));
       return { ok: true, message: '' };
     } catch {
@@ -69,11 +68,18 @@ export class AuthService {
     return raw ? (JSON.parse(raw) as User) : null;
   }
 
+  // tf_token is not HttpOnly, so it is readable here and is the authoritative
+  // logged-in signal (survives page reloads and new tabs, unlike sessionStorage).
   isLoggedIn(): boolean {
-    return this.getUser() !== null;
+    return document.cookie.split(';').some(c => c.trim().startsWith('tf_token='));
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // best-effort — clear local state regardless
+    }
     sessionStorage.removeItem(AuthService.STORAGE_KEY);
   }
 }

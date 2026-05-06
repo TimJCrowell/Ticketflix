@@ -7,7 +7,7 @@ import { Router } from '../services/Router.js';
 export class HomePage extends BasePage {
   private movieService = MovieService.getInstance();
 
-  render(): void {
+  async render(): Promise<void> {
     const page = this.scaffold('home-page');
 
     const content = document.createElement('main');
@@ -18,8 +18,9 @@ export class HomePage extends BasePage {
     `;
     page.appendChild(content);
 
-    const grid = content.querySelector('#movie-grid') as HTMLElement;
-    this.movieService.getAllMovies().forEach(movie => {
+    const movies = await this.movieService.getMovies();
+    const grid   = content.querySelector('#movie-grid') as HTMLElement;
+    movies.forEach(movie => {
       const card = new MovieCard(movie, (m: Movie) => this.onMovieClick(m));
       grid.appendChild(card.render());
     });

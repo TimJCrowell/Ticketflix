@@ -3,6 +3,8 @@ package com.moviebooking.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 
@@ -27,6 +29,7 @@ public class Room {
 
     @Id
     @Column(name = "room_id")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     @Column(name = "number", nullable = false)

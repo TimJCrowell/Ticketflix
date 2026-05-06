@@ -4,15 +4,12 @@ import { BookingService } from '../services/BookingService.js';
 import { Seat } from '../models/Seat.js';
 import { Router } from '../services/Router.js';
 
-const ROWS = ['A','B','C','D','E','F','G','H'];
-const COLS = 14;
-
 export class SeatSelectionPage extends BasePage {
   private bookingService = BookingService.getInstance();
   private seatGrid!: SeatGrid;
   private selected: Seat[] = [];
 
-  render(): void {
+  async render(): Promise<void> {
     const pending = this.bookingService.getPending();
     if (!pending) { Router.navigateTo('/index.html'); return; }
 
@@ -26,7 +23,6 @@ export class SeatSelectionPage extends BasePage {
     `;
     page.appendChild(main);
 
-    // Bottom bar
     const bar = document.createElement('footer');
     bar.className = 'seat-bar';
     bar.innerHTML = `
@@ -47,9 +43,8 @@ export class SeatSelectionPage extends BasePage {
     `;
     page.appendChild(bar);
 
-    // Render seat grid
+    const seats = await this.bookingService.fetchSeats(pending.showtimeId);
     const gridContainer = main.querySelector('#seat-grid-container') as HTMLElement;
-    const seats = this.bookingService.generateSeats(ROWS, COLS);
     this.seatGrid = new SeatGrid(seats, (sel: Seat[]) => this.onSelectionChange(sel, pending.price));
     this.seatGrid.render(gridContainer);
 
@@ -58,8 +53,8 @@ export class SeatSelectionPage extends BasePage {
 
   private onSelectionChange(selected: Seat[], pricePerSeat: number): void {
     this.selected = selected;
-    const total   = (selected.length * pricePerSeat).toFixed(2);
-    const labels  = selected.length ? selected.map(s => s.label).join(', ') : '—';
+    const total  = (selected.length * pricePerSeat).toFixed(2);
+    const labels = selected.length ? selected.map(s => s.label).join(', ') : '—';
 
     const barTotal = document.getElementById('bar-total');
     const barSeats = document.getElementById('bar-seats');
@@ -82,7 +77,6 @@ export class SeatSelectionPage extends BasePage {
       btn.disabled = true;
       btn.textContent = 'Processing…';
 
-      // Stub confirm
       await new Promise(r => setTimeout(r, 700));
 
       this.bookingService.clearPending();
