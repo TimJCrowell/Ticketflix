@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -75,7 +77,7 @@ public class MovieController {
             Movie movie = movieService.createMovie(
                     request.getName(), request.getRuntime(),
                     request.getShortDescription(), request.getLongDescription(),
-                    request.getPosterImage());
+                    request.getPosterImage(), request.getRating(), request.getGenre());
             return ResponseEntity.status(HttpStatus.CREATED).body(movie);
         } catch (BadRequestException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -104,7 +106,7 @@ public class MovieController {
             Movie movie = movieService.updateMovie(
                     id, request.getName(), request.getRuntime(),
                     request.getShortDescription(), request.getLongDescription(),
-                    request.getPosterImage());
+                    request.getPosterImage(), request.getRating(), request.getGenre());
             return ResponseEntity.ok(movie);
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -112,6 +114,35 @@ public class MovieController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Uploads a poster image for a movie.
+     *
+     * <p>Saves the file as {@code {movieId as unsigned decimal}.{ext}} under
+     * {@code /img/posters/} and updates {@code posterImage} on the movie.</p>
+     *
+     * @param id         the movie's Snowflake ID
+     * @param file       the poster image (multipart form field {@code file})
+     * @param token      {@code tf_token} cookie
+     * @param sessionKey {@code tf_key} cookie
+     */
+    @PostMapping("/{id}/poster")
+    public ResponseEntity<?> uploadPoster(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String sessionKey) {
+        ResponseEntity<?> authError = checkManager(token, sessionKey);
+        if (authError != null) return authError;
+        try {
+            Movie movie = movieService.uploadPoster(id, file);
+            return ResponseEntity.ok(movie);
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save poster");
         }
     }
 

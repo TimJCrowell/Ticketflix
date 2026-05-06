@@ -6,8 +6,14 @@ import com.moviebooking.exception.NotFoundException;
 import com.moviebooking.repository.MovieRepository;
 import com.moviebooking.util.SnowflakeIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -25,6 +31,9 @@ public class MovieService {
 
     @Autowired
     private SnowflakeIdGenerator idGenerator;
+
+    @Value("${poster.upload-dir}")
+    private String uploadDir;
 
     /**
      * Returns all movies.
@@ -60,7 +69,8 @@ public class MovieService {
      * @throws RuntimeException    if a movie with that title already exists
      */
     public Movie createMovie(String name, int runtime, String shortDescription,
-                             String longDescription, String posterImage) {
+                             String longDescription, String posterImage,
+                             String rating, String genre) {
         if (name == null || name.isBlank()) {
             throw new BadRequestException("Movie name must not be blank");
         }
@@ -77,6 +87,8 @@ public class MovieService {
         movie.setShortDescription(shortDescription);
         movie.setLongDescription(longDescription);
         movie.setPosterImage(posterImage);
+        movie.setRating(rating);
+        movie.setGenre(genre);
         return movieRepository.save(movie);
     }
 
@@ -95,7 +107,8 @@ public class MovieService {
      * @throws RuntimeException    if the new title is already taken by a different movie
      */
     public Movie updateMovie(Long id, String name, int runtime, String shortDescription,
-                             String longDescription, String posterImage) {
+                             String longDescription, String posterImage,
+                             String rating, String genre) {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Movie not found: " + id));
         if (name == null || name.isBlank()) {
@@ -112,6 +125,39 @@ public class MovieService {
         movie.setShortDescription(shortDescription);
         movie.setLongDescription(longDescription);
         movie.setPosterImage(posterImage);
+        movie.setRating(rating);
+        movie.setGenre(genre);
+        return movieRepository.save(movie);
+    }
+
+    /**
+     * Saves an uploaded poster image for a movie.
+     *
+     * <p>The file is written to the configured upload directory as
+     * {@code {movieId as unsigned decimal}.{ext}} and {@code posterImage} is
+     * updated to {@code /img/posters/{filename}}.</p>
+     *
+     * @param movieId the movie's Snowflake ID
+     * @param file    the uploaded image file
+     * @return the updated {@link Movie}
+     * @throws NotFoundException if no movie exists with the given ID
+     * @throws IOException       if the file cannot be written to disk
+     */
+    public Movie uploadPoster(Long movieId, MultipartFile file) throws IOException {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new NotFoundException("Movie not found: " + movieId));
+
+        String original = file.getOriginalFilename();
+        String ext = (original != null && original.contains("."))
+                ? original.substring(original.lastIndexOf('.'))
+                : "";
+
+        String filename = Long.toUnsignedString(movieId) + ext;
+        Path dir = Paths.get(uploadDir);
+        Files.createDirectories(dir);
+        file.transferTo(dir.resolve(filename));
+
+        movie.setPosterImage("/img/posters/" + filename);
         return movieRepository.save(movie);
     }
 

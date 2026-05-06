@@ -28,6 +28,12 @@ public class Movie {
     @Column(name = "poster_image")
     private String posterImage;
 
+    @Column(name = "rating")
+    private String rating;
+
+    @Column(name = "genre")
+    private String genre;
+
     public Movie() {}
 
     public Long getId() { return id; }
@@ -47,4 +53,10 @@ public class Movie {
 
     public String getPosterImage() { return posterImage; }
     public void setPosterImage(String posterImage) { this.posterImage = posterImage; }
+
+    public String getRating() { return rating; }
+    public void setRating(String rating) { this.rating = rating; }
+
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
 }
