@@ -44,7 +44,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/js/**", "/*.html").permitAll()
+                .requestMatchers("/", "/js/**", "/css/**", "/img/posters/**", "/*.html").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/checkout/**").permitAll()
                 .requestMatchers("/api/theaters/**").permitAll()
