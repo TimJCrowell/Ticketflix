@@ -37,7 +37,7 @@ export class AuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<{ ok: boolean; message: string }> {
+  async login(email: string, password: string): Promise<{ ok: boolean; message: string; role?: string }> {
     try {
       const emailRes = await fetch('/api/auth/login/email', {
         method: 'POST',
@@ -47,17 +47,19 @@ export class AuthService {
       if (emailRes.status === 404) return { ok: false, message: 'No account found for that email.' };
       if (!emailRes.ok)           return { ok: false, message: 'Unexpected server error.' };
 
-      // Backend returns empty body and sets tf_token + tf_key cookies on success.
+      const { roles } = await emailRes.json() as { roles: string[] };
+      const role = roles.indexOf('MANAGER') !== -1 ? 'MANAGER' : (roles[0] ?? 'CUSTOMER');
+
       const passRes = await fetch('/api/auth/login/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role: 'CUSTOMER', password })
+        body: JSON.stringify({ email, role, password })
       });
       if (!passRes.ok) return { ok: false, message: 'Invalid email or password.' };
 
-      const user: User = { email, firstName: '', role: 'CUSTOMER' };
+      const user: User = { email, firstName: '', role };
       sessionStorage.setItem(AuthService.STORAGE_KEY, JSON.stringify(user));
-      return { ok: true, message: '' };
+      return { ok: true, message: '', role };
     } catch {
       return { ok: false, message: 'Could not reach the server. Please try again.' };
     }

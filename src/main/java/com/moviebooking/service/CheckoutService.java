@@ -211,6 +211,21 @@ public class CheckoutService
         return checkoutRepository.findByShowtimeId(showtimeId);
     }
 
+    @Transactional(readOnly = true)
+    public List<CheckoutResponse> getAllCheckouts()
+    {
+        return checkoutRepository.findAll().stream()
+                .map(c -> new CheckoutResponse(
+                        c.getCheckoutId(),
+                        c.getUser().getUserID(),
+                        c.getShowtimeId(),
+                        c.getSeatLabels(),
+                        c.getTotal(),
+                        c.getStatus(),
+                        c.getCreatedAt()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     /**
      * Parses a seat label such as {@code "A3"} into a {@code [row, col]} index pair.
      * Row is zero-based (A=0, B=1, …). Column is zero-based (1→0, 2→1, …).

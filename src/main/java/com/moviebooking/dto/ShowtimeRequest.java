@@ -8,15 +8,15 @@ package com.moviebooking.dto;
  */
 public class ShowtimeRequest {
 
-    private Long movieId;
-    private Long roomId;
+    private String movieId;
+    private String roomId;
     private String datetime;
 
-    public Long getMovieId() { return movieId; }
-    public void setMovieId(Long movieId) { this.movieId = movieId; }
+    public String getMovieId() { return movieId; }
+    public void setMovieId(String movieId) { this.movieId = movieId; }
 
-    public Long getRoomId() { return roomId; }
-    public void setRoomId(Long roomId) { this.roomId = roomId; }
+    public String getRoomId() { return roomId; }
+    public void setRoomId(String roomId) { this.roomId = roomId; }
 
     public String getDatetime() { return datetime; }
     public void setDatetime(String datetime) { this.datetime = datetime; }

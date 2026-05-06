@@ -73,9 +73,15 @@ public class ShowtimeController {
             @CookieValue(value = "tf_key",   required = false) String sessionKey) {
         ResponseEntity<?> authError = checkManager(token, sessionKey);
         if (authError != null) return authError;
+        Long movieId, roomId;
         try {
-            Showtime showtime = showtimeService.createShowtime(
-                    request.getMovieId(), request.getRoomId(), request.getDatetime());
+            movieId = Long.parseUnsignedLong(request.getMovieId());
+            roomId  = Long.parseUnsignedLong(request.getRoomId());
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body("Invalid movieId or roomId");
+        }
+        try {
+            Showtime showtime = showtimeService.createShowtime(movieId, roomId, request.getDatetime());
             return ResponseEntity.status(HttpStatus.CREATED).body(showtime);
         } catch (BadRequestException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -100,9 +106,15 @@ public class ShowtimeController {
             @CookieValue(value = "tf_key",   required = false) String sessionKey) {
         ResponseEntity<?> authError = checkManager(token, sessionKey);
         if (authError != null) return authError;
+        Long movieId, roomId;
         try {
-            Showtime showtime = showtimeService.updateShowtime(
-                    id, request.getMovieId(), request.getRoomId(), request.getDatetime());
+            movieId = Long.parseUnsignedLong(request.getMovieId());
+            roomId  = Long.parseUnsignedLong(request.getRoomId());
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body("Invalid movieId or roomId");
+        }
+        try {
+            Showtime showtime = showtimeService.updateShowtime(id, movieId, roomId, request.getDatetime());
             return ResponseEntity.ok(showtime);
         } catch (BadRequestException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
