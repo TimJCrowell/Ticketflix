@@ -163,15 +163,25 @@ public class MovieService {
     }
 
     /**
-     * Deletes a movie.
+     * Deletes a movie and its poster file from both static directories.
      *
      * @param id the movie's Snowflake ID
      * @throws NotFoundException if no movie exists with the given ID
      */
     public void deleteMovie(Long id) {
-        if (!movieRepository.existsById(id)) {
-            throw new NotFoundException("Movie not found: " + id);
-        }
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Movie not found: " + id));
+
+        String posterImage = movie.getPosterImage();
         movieRepository.deleteById(id);
+
+        if (posterImage != null && !posterImage.isBlank()) {
+            String filename = Paths.get(posterImage).getFileName().toString();
+            for (String dir : new String[]{ uploadDir, "target/classes/static/img/posters" }) {
+                try {
+                    Files.deleteIfExists(Paths.get(dir, filename));
+                } catch (IOException ignored) {}
+            }
+        }
     }
 }
