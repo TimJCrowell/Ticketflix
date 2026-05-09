@@ -1,6 +1,8 @@
 package com.moviebooking.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,7 @@ public class Theater {
 
     @Id
     @Column(name = "theater_id")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     @Column(name = "name", unique = true, nullable = false)

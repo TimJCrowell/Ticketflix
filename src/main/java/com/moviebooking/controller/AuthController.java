@@ -1,5 +1,6 @@
 package com.moviebooking.controller;
 
+import com.moviebooking.dto.ChangePasswordRequest;
 import com.moviebooking.dto.EmailLookupRequest;
 import com.moviebooking.dto.LoginRequest;
 import com.moviebooking.dto.RegisterRequest;
@@ -117,6 +118,33 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
+    /**
+     * Changes the password for the currently authenticated user.
+     *
+     * @param request  body containing {@code currentPassword} and {@code newPassword}
+     * @param token    value of the {@code tf_token} cookie (session ID)
+     * @param rawKey   value of the {@code tf_key} cookie (HMAC key)
+     * @return {@code 200 OK} on success; {@code 400} if current password is wrong;
+     *         {@code 401} if the session is invalid or missing
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody ChangePasswordRequest request,
+            @CookieValue(value = "tf_token", required = false) String token,
+            @CookieValue(value = "tf_key",   required = false) String rawKey) {
+        if (token == null || token.isBlank() || rawKey == null || rawKey.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+        try {
+            authService.changePassword(token, rawKey, request.getCurrentPassword(), request.getNewPassword());
+            return ResponseEntity.ok("Password changed successfully.");
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+    }
+
     /**
      * Invalidates a session by deleting its token from the database, then
      * clears the session cookies.

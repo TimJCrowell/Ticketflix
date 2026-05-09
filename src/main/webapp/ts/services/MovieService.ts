@@ -2,119 +2,103 @@ import { Movie } from '../models/Movie.js';
 import { Theater } from '../models/Theater.js';
 import { Showtime } from '../models/Showtime.js';
 
+const PRICE_PER_SEAT = 14.99;
+
+function formatTime(datetime: string): string {
+  const [h, m] = datetime.split('T')[1].split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  const mm = m < 10 ? `0${m}` : `${m}`;
+  return `${h12}:${mm} ${period}`;
+}
+
 export class MovieService {
   private static instance: MovieService;
 
-  private readonly movies: Movie[] = [
-    new Movie({
-      id: 1, title: 'Kingdom of the Planet of the Apes', genre: 'Action', duration: 145, rating: 'PG-13',
-      posterGradient: 'linear-gradient(170deg,#7c2d12 0%,#b45309 45%,#92400e 100%)',
-      posterAccent: '#fbbf24',
-      description: 'Many generations after the reign of Caesar, a new tyrannical ape leader builds his empire.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/gKkl37BQuKTanygYQG1pyYgLVgf.jpg'
-    }),
-    new Movie({
-      id: 2, title: 'IF', genre: 'Family', duration: 104, rating: 'PG',
-      posterGradient: 'linear-gradient(170deg,#1c1917 0%,#d97706 55%,#f59e0b 100%)',
-      posterAccent: '#fde68a',
-      description: 'A girl who discovers she can see imaginary friends that have been abandoned by children.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/xQLo3NG0uGGkbP3Mk2BhGwuW17mb.jpg'
-    }),
-    new Movie({
-      id: 3, title: 'Civil War', genre: 'Action', duration: 109, rating: 'R',
-      posterGradient: 'linear-gradient(170deg,#0f172a 0%,#1e3a5f 50%,#1e40af 100%)',
-      posterAccent: '#93c5fd',
-      description: 'Journalists travel across a war-torn America reporting on the second civil war.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/sh7Rg8Er3tFcN9BpKIPOMvALgZd.jpg'
-    }),
-    new Movie({
-      id: 4, title: 'Furiosa', genre: 'Action', duration: 148, rating: 'R',
-      posterGradient: 'linear-gradient(170deg,#1a0000 0%,#7f1d1d 50%,#991b1b 100%)',
-      posterAccent: '#fca5a5',
-      description: 'The origin story of the legendary Mad Max character Furiosa.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/iADOJ8Zymht2JPMoy3R7xceZprc.jpg'
-    }),
-    new Movie({
-      id: 5, title: 'Wicked', genre: 'Musical', duration: 160, rating: 'PG',
-      posterGradient: 'linear-gradient(170deg,#1e0840 0%,#4c1d95 50%,#6d28d9 100%)',
-      posterAccent: '#c4b5fd',
-      description: 'The untold story of the witches of the land of Oz.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/xDGbZ0JJ3mYaGKy4Nzd9Kph5LYEX.jpg'
-    }),
-    new Movie({
-      id: 6, title: 'The Beekeeper', genre: 'Action', duration: 105, rating: 'R',
-      posterGradient: 'linear-gradient(170deg,#0c0a09 0%,#292524 50%,#44403c 100%)',
-      posterAccent: '#d6d3d1',
-      description: 'A man wages a relentless campaign against phishing scammers who stole from his friend.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/2uOPx8s8pMZiRlcXS6s3B5qdAfn.jpg'
-    }),
-  ];
+  private _movies: Movie[] | null = null;
+  private _theaters: Theater[] | null = null;
+  private _showtimes: Map<string, Showtime[]> = new Map();
+  private _roomToTheater: Map<string, Theater> = new Map();
 
-  private readonly theaters: Theater[] = [
-    new Theater({ id: 1, name: 'Northridge', city: 'Northridge', address: '18600 Devonshire St, Northridge, CA' }),
-    new Theater({ id: 2, name: 'Santa Ana',  city: 'Santa Ana',  address: '1601 W Sunflower Ave, Santa Ana, CA' }),
-    new Theater({ id: 3, name: 'Los Angeles', city: 'Los Angeles', address: '555 W 5th St, Los Angeles, CA' }),
-  ];
-
-  private readonly showtimes: Showtime[] = [];
-
-  private constructor() {
-    this.generateShowtimes();
-  }
+  private constructor() {}
 
   static getInstance(): MovieService {
-    if (!MovieService.instance) {
-      MovieService.instance = new MovieService();
-    }
+    if (!MovieService.instance) MovieService.instance = new MovieService();
     return MovieService.instance;
   }
 
-  private generateShowtimes(): void {
-    const times = ['1:00 PM', '3:30 PM', '6:00 PM'];
-    const today = new Date();
-    let id = 1;
+  async getMovies(): Promise<Movie[]> {
+    if (!this._movies) {
+      const res  = await fetch('/api/movies');
+      const data = await res.json() as any[];
+      this._movies = data.map((m, i) => new Movie({
+        id:          m.id,
+        title:       m.name,
+        genre:       m.genre        ?? '',
+        duration:    m.runtime,
+        rating:      m.rating       ?? '',
+        description: m.shortDescription ?? '',
+        posterUrl:   m.posterImage  ?? '',
+      }, i));
+    }
+    return this._movies;
+  }
 
-    this.movies.forEach(movie => {
-      this.theaters.forEach(theater => {
-        for (let d = 0; d < 7; d++) {
-          const date = new Date(today);
-          date.setDate(today.getDate() + d);
-          const iso = date.toISOString().split('T')[0];
-          times.forEach(time => {
-            this.showtimes.push(new Showtime({
-              id: id++, movieId: movie.id, theater, date: iso, time, price: 14.99
-            }));
-          });
+  async getTheaters(): Promise<Theater[]> {
+    if (!this._theaters) {
+      const res  = await fetch('/api/theaters');
+      const data = await res.json() as any[];
+      this._theaters = data.map(t => {
+        const theater = new Theater({ id: t.id, name: t.name });
+        for (const room of (t.rooms ?? [])) {
+          this._roomToTheater.set(room.id, theater);
         }
+        return theater;
       });
-    });
+    }
+    return this._theaters;
   }
 
-  getAllMovies(): Movie[] { return [...this.movies]; }
+  async loadShowtimesForMovie(movieId: string): Promise<void> {
+    if (this._showtimes.has(movieId)) return;
+    await this.getTheaters(); // ensure room→theater map is populated
 
-  getMovieById(id: number): Movie | undefined {
-    return this.movies.find(m => m.id === id);
+    const res  = await fetch(`/api/showtimes?movieId=${movieId}`);
+    const data = await res.json() as any[];
+
+    const showtimes: Showtime[] = [];
+    for (const s of data) {
+      const theater = this._roomToTheater.get(s.roomId);
+      if (!theater) continue;
+      showtimes.push(new Showtime({
+        id:       s.id,
+        movieId:  s.movieId,
+        theater,
+        roomId:   s.roomId,
+        date:     (s.datetime as string).split('T')[0],
+        time:     formatTime(s.datetime),
+        price:    PRICE_PER_SEAT,
+      }));
+    }
+    this._showtimes.set(movieId, showtimes);
   }
 
-  getAllTheaters(): Theater[] { return [...this.theaters]; }
-
-  getTheaterById(id: number): Theater | undefined {
-    return this.theaters.find(t => t.id === id);
+  getMovieById(id: string): Movie | undefined {
+    return this._movies?.find(m => m.id === id);
   }
 
-  getShowtimesForMovie(movieId: number, theaterId?: number, date?: string): Showtime[] {
-    return this.showtimes.filter(s =>
-      s.movieId === movieId &&
+  getCachedShowtimes(movieId: string, theaterId?: string, date?: string): Showtime[] {
+    const all = this._showtimes.get(movieId) ?? [];
+    return all.filter(s =>
       (theaterId === undefined || s.theater.id === theaterId) &&
-      (date === undefined || s.date === date)
+      (date      === undefined || s.date      === date)
     );
   }
 
-  getAvailableDates(movieId: number, theaterId: number): string[] {
+  getAvailableDates(movieId: string, theaterId: string): string[] {
     const seen = new Set<string>();
-    return this.showtimes
-      .filter(s => s.movieId === movieId && s.theater.id === theaterId)
+    return this.getCachedShowtimes(movieId, theaterId)
       .map(s => s.date)
-      .filter(d => { if (seen.has(d)) return false; seen.add(d); return true; });
+      .filter(d => !seen.has(d) && !!seen.add(d));
   }
 }

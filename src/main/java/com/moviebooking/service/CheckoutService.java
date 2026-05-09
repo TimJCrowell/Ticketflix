@@ -72,12 +72,19 @@ public class CheckoutService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required");
         }//end if
 
-        if (request.getShowtimeId() == null)
+        if (request.getShowtimeId() == null || request.getShowtimeId().isBlank())
         {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Showtime ID is required");
         }//end if
 
-        Showtime showtime = showtimeRepository.findById(request.getShowtimeId())
+        Long showtimeId;
+        try {
+            showtimeId = Long.parseUnsignedLong(request.getShowtimeId());
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid showtime ID");
+        }
+
+        Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Showtime not found: " + request.getShowtimeId()));
         if (!showtime.getDatetime().isAfter(LocalDateTime.now()))
         {
@@ -133,7 +140,7 @@ public class CheckoutService
         Checkout checkout = new Checkout();
         checkout.setCheckoutId(idGenerator.nextId());
         checkout.setUser(customer);
-        checkout.setShowtimeId(request.getShowtimeId());
+        checkout.setShowtimeId(showtimeId);
         checkout.setSeatLabels(seats);
         checkout.setTotal(total);
         checkout.setStatus(STATUS_PENDING);
@@ -202,6 +209,21 @@ public class CheckoutService
     public List<Checkout> getCheckoutsByShowtime(Long showtimeId)
     {
         return checkoutRepository.findByShowtimeId(showtimeId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CheckoutResponse> getAllCheckouts()
+    {
+        return checkoutRepository.findAll().stream()
+                .map(c -> new CheckoutResponse(
+                        c.getCheckoutId(),
+                        c.getUser().getUserID(),
+                        c.getShowtimeId(),
+                        c.getSeatLabels(),
+                        c.getTotal(),
+                        c.getStatus(),
+                        c.getCreatedAt()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**

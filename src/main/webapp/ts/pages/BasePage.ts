@@ -11,7 +11,7 @@ export abstract class BasePage {
     this.navBar = new NavBar();
   }
 
-  abstract render(): void;
+  abstract render(): void | Promise<void>;
 
   /** Clears root, appends a wrapper div, mounts the nav into it, returns the wrapper */
   protected scaffold(pageClass: string): HTMLElement {

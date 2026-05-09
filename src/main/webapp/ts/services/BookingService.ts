@@ -1,9 +1,9 @@
-import { Seat, SeatStatus } from '../models/Seat.js';
-import { Showtime } from '../models/Showtime.js';
+import { Seat } from '../models/Seat.js';
 
 export interface PendingBookingData {
-  movieId: number;
-  theaterId: number;
+  showtimeId: string;
+  movieId: string;
+  theaterId: string;
   date: string;
   time: string;
   price: number;
@@ -12,6 +12,8 @@ export interface PendingBookingData {
   theaterAddress: string;
 }
 
+const ROW_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
 export class BookingService {
   private static instance: BookingService;
   private static readonly PENDING_KEY = 'ticketflix_pending';
@@ -19,26 +21,23 @@ export class BookingService {
   private constructor() {}
 
   static getInstance(): BookingService {
-    if (!BookingService.instance) {
-      BookingService.instance = new BookingService();
-    }
+    if (!BookingService.instance) BookingService.instance = new BookingService();
     return BookingService.instance;
   }
 
-  /** Generate a seating chart with some seats pre-taken */
-  generateSeats(rows: string[], cols: number): Seat[][] {
-    // Deterministic taken pattern so it looks realistic
-    const takenPattern: Record<string, boolean> = {};
-    ['A3','A4','B7','B8','B9','C1','C2','D5','D6','E10','E11','F3','G6','G7','H2','H3','H4'].forEach(l => {
-      takenPattern[l] = true;
-    });
-
-    return rows.map(row =>
-      Array.from({ length: cols }, (_, i) => {
-        const label = `${row}${i + 1}`;
-        const status: SeatStatus = takenPattern[label] ? 'taken' : 'available';
-        return new Seat({ row, col: i + 1, status });
-      })
+  async fetchSeats(showtimeId: string): Promise<Seat[][]> {
+    const res  = await fetch(`/api/showtimes/${showtimeId}`);
+    const data = await res.json() as { seatmap: (({ available: boolean; accessible: boolean } | null))[][] };
+    return data.seatmap.map((row, rowIndex) =>
+      row
+        .map((cell, colIndex): Seat | null =>
+          cell === null ? null : new Seat({
+            row:    ROW_LETTERS[rowIndex],
+            col:    colIndex + 1,
+            status: cell.available ? 'available' : 'taken',
+          })
+        )
+        .filter((s): s is Seat => s !== null)
     );
   }
 
@@ -55,9 +54,30 @@ export class BookingService {
     sessionStorage.removeItem(BookingService.PENDING_KEY);
   }
 
-  async confirmBooking(_showtime: Showtime, _seats: Seat[]): Promise<{ ok: boolean }> {
-    // Stub — wire to your backend here
-    await new Promise(resolve => setTimeout(resolve, 600));
-    return { ok: true };
+  async confirmBooking(
+    showtimeId: string,
+    seats: Seat[],
+    cardNumber: string,
+  ): Promise<{ ok: boolean; message: string; checkoutId?: string }> {
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          showtimeId,
+          seatLabels: seats.map(s => s.label),
+          cardNumber,
+        }),
+      });
+      if (res.status === 401) return { ok: false, message: 'You must be logged in to book tickets.' };
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { message?: string } | null;
+        return { ok: false, message: body?.message ?? 'Booking failed. Please try again.' };
+      }
+      const data = await res.json() as { checkoutId: string };
+      return { ok: true, message: '', checkoutId: data.checkoutId };
+    } catch {
+      return { ok: false, message: 'Could not reach the server. Please try again.' };
+    }
   }
 }

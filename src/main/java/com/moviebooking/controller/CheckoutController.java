@@ -66,17 +66,19 @@ public class CheckoutController
      * @return {@code 200 OK} with the list of checkouts
      */
     @GetMapping
-    public ResponseEntity<?> getCheckoutsByShowtime(
-            @RequestParam Long showtimeId,
+    public ResponseEntity<?> getCheckouts(
+            @RequestParam(required = false) Long showtimeId,
             @CookieValue(value = "tf_token", required = false) String token,
             @CookieValue(value = "tf_key",   required = false) String sessionKey) {
         User user = resolveUser(token, sessionKey);
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         if (!"MANAGER".equals(user.getRole())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Manager role required");
-        }//end if
-        List<Checkout> checkouts = checkoutService.getCheckoutsByShowtime(showtimeId);
-        return ResponseEntity.ok(checkouts);
+        }
+        if (showtimeId != null) {
+            return ResponseEntity.ok(checkoutService.getCheckoutsByShowtime(showtimeId));
+        }
+        return ResponseEntity.ok(checkoutService.getAllCheckouts());
     }
 
     @PostMapping

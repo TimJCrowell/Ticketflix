@@ -3,6 +3,8 @@ package com.moviebooking.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -23,15 +25,18 @@ public class Showtime {
 
     @Id
     @Column(name = "showtime_id")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     @Column(name = "datetime", nullable = false)
     private LocalDateTime datetime;
 
     @Column(name = "movie_id", nullable = false)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long movieId;
 
     @Column(name = "room_id", nullable = false)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long roomId;
 
     @Column(name = "seatmap", columnDefinition = "text", nullable = false)

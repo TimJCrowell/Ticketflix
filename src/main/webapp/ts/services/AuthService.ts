@@ -2,7 +2,6 @@ export interface User {
   email: string;
   firstName: string;
   role: string;
-  token?: string;
 }
 
 export class AuthService {
@@ -38,7 +37,7 @@ export class AuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<{ ok: boolean; message: string }> {
+  async login(email: string, password: string): Promise<{ ok: boolean; message: string; role?: string }> {
     try {
       const emailRes = await fetch('/api/auth/login/email', {
         method: 'POST',
@@ -48,17 +47,19 @@ export class AuthService {
       if (emailRes.status === 404) return { ok: false, message: 'No account found for that email.' };
       if (!emailRes.ok)           return { ok: false, message: 'Unexpected server error.' };
 
+      const { roles } = await emailRes.json() as { roles: string[] };
+      const role = roles.indexOf('MANAGER') !== -1 ? 'MANAGER' : (roles[0] ?? 'CUSTOMER');
+
       const passRes = await fetch('/api/auth/login/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role: 'CUSTOMER', password })
+        body: JSON.stringify({ email, role, password })
       });
       if (!passRes.ok) return { ok: false, message: 'Invalid email or password.' };
 
-      const data = await passRes.json() as { token: string };
-      const user: User = { email, firstName: '', role: 'CUSTOMER', token: data.token };
+      const user: User = { email, firstName: '', role };
       sessionStorage.setItem(AuthService.STORAGE_KEY, JSON.stringify(user));
-      return { ok: true, message: '' };
+      return { ok: true, message: '', role };
     } catch {
       return { ok: false, message: 'Could not reach the server. Please try again.' };
     }
@@ -69,11 +70,18 @@ export class AuthService {
     return raw ? (JSON.parse(raw) as User) : null;
   }
 
+  // tf_token is not HttpOnly, so it is readable here and is the authoritative
+  // logged-in signal (survives page reloads and new tabs, unlike sessionStorage).
   isLoggedIn(): boolean {
-    return this.getUser() !== null;
+    return document.cookie.split(';').some(c => c.trim().startsWith('tf_token='));
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // best-effort — clear local state regardless
+    }
     sessionStorage.removeItem(AuthService.STORAGE_KEY);
   }
 }

@@ -248,3 +248,14 @@
   font-weight: 700;
   color: var(--accent);
 }
+
+.booking-card__auth-prompt {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.booking-card__auth-btns {
+  display: flex;
+  gap: 8px;
+}

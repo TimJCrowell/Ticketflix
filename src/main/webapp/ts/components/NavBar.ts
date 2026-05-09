@@ -39,8 +39,7 @@ export class NavBar {
           case 'login':      Router.navigateTo('/signin.html');   break;
           case 'register':   Router.navigateTo('/register.html'); break;
           case 'logout':
-            this.authService.logout();
-            Router.navigateTo('/index.html');
+            this.authService.logout().then(() => Router.navigateTo('/index.html'));
             break;
           case 'my-tickets': Router.navigateTo('/index.html');     break;
         }

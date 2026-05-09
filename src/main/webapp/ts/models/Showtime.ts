@@ -1,18 +1,20 @@
 import { Theater } from './Theater.js';
 
 export interface ShowtimeData {
-  id: number;
-  movieId: number;
+  id: string;
+  movieId: string;
   theater: Theater;
+  roomId: string;
   date: string;
   time: string;
   price: number;
 }
 
 export class Showtime {
-  readonly id: number;
-  readonly movieId: number;
+  readonly id: string;
+  readonly movieId: string;
   readonly theater: Theater;
+  readonly roomId: string;
   readonly date: string;
   readonly time: string;
   readonly price: number;
@@ -21,6 +23,7 @@ export class Showtime {
     this.id       = data.id;
     this.movieId  = data.movieId;
     this.theater  = data.theater;
+    this.roomId   = data.roomId;
     this.date     = data.date;
     this.time     = data.time;
     this.price    = data.price;

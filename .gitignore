@@ -38,6 +38,9 @@ yarn-error.log*
 src/main/resources/static/js/
 *.js.map
 
+### --- Uploaded Media --- ###
+src/main/resources/static/img/posters/*
+
 ### --- Docker & Local Data --- ###
 # Ignore local database storage
 postgres-data/

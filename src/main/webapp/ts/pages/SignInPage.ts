@@ -41,7 +41,7 @@ export class SignInPage extends BasePage {
 
       const result = await this.auth.login(email, password);
       if (result.ok) {
-        Router.navigateTo('/index.html');
+        Router.navigateTo(result.role === 'MANAGER' ? '/admin.html' : '/index.html');
       } else {
         err.textContent = result.message;
       }
